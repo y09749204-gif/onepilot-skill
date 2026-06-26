@@ -1,0 +1,4 @@
+interface:
+  display_name: "OnePilot"
+  short_description: "Bind OnePilot, recommend events, save memory, and prepare applications."
+  default_prompt: "Bind this agent to OnePilot, then recommend matching events and help maintain my preferences."
