@@ -1,0 +1,446 @@
+#!/usr/bin/env node
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const DEFAULT_SUPABASE_URL = "https://kgpktqongfxugynwadaa.supabase.co";
+const CONFIG_DIR = path.join(os.homedir(), ".config", "onepilot");
+const CONFIG_PATH = path.join(CONFIG_DIR, "agent.json");
+const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+function usage() {
+  return `OnePilot agent helper
+
+Usage:
+  onepilot-agent.mjs status
+  onepilot-agent.mjs bind --code OPB-XXXXXXXXXXXX [--agent-name Codex]
+  onepilot-agent.mjs bind-email start --email USER@example.com [--agent-name Codex]
+  onepilot-agent.mjs bind-email verify --email USER@example.com --code 123456 [--agent-name Codex]
+  onepilot-agent.mjs bind-email verify --email USER@example.com --code-stdin [--agent-name Codex]
+  onepilot-agent.mjs recommend --query TEXT [--topics A,B] [--districts A,B] [--formats A,B] [--limit 3]
+  onepilot-agent.mjs memory view
+  onepilot-agent.mjs memory merge --type preferences|availability|application_profile|answer_examples --json '{"key":"value"}'
+  onepilot-agent.mjs memory delete --type preferences|availability|application_profile|answer_examples
+  onepilot-agent.mjs memory delete --all
+  onepilot-agent.mjs subscription view
+  onepilot-agent.mjs subscription set --query TEXT [--topics A,B] [--districts A,B] [--formats A,B] [--frequency daily]
+  onepilot-agent.mjs subscription due
+  onepilot-agent.mjs subscription run-now
+  onepilot-agent.mjs subscription disable
+  onepilot-agent.mjs application prepare --detail-token dt_xxx --questions TEXT
+  onepilot-agent.mjs event-context --detail-token dt_xxx
+`;
+}
+
+function readArgs(argv) {
+  const args = { _: [] };
+  for (let index = 0; index < argv.length; index += 1) {
+    const item = argv[index];
+    if (!item.startsWith("--")) {
+      args._.push(item);
+      continue;
+    }
+    const key = item.slice(2);
+    const next = argv[index + 1];
+    if (!next || next.startsWith("--")) {
+      args[key] = true;
+      continue;
+    }
+    args[key] = next;
+    index += 1;
+  }
+  return args;
+}
+
+function splitList(value) {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function ensureConfigDir() {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+}
+
+function readConfig() {
+  try {
+    const raw = fs.readFileSync(CONFIG_PATH, "utf8");
+    const config = JSON.parse(raw);
+    if (!config || typeof config !== "object") return null;
+    return config;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function writeConfig(config) {
+  ensureConfigDir();
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+  fs.chmodSync(CONFIG_PATH, 0o600);
+}
+
+function safeConfigSummary(config) {
+  return {
+    bound: Boolean(config?.agentToken),
+    configPath: CONFIG_PATH,
+    supabaseUrl: config?.supabaseUrl || DEFAULT_SUPABASE_URL,
+    label: config?.label || "",
+    scopes: Array.isArray(config?.scopes) ? config.scopes : [],
+    boundAt: config?.boundAt || "",
+    subscription: publicSubscription(config?.subscription),
+  };
+}
+
+function requireConfig() {
+  const config = readConfig();
+  if (!config?.agentToken) {
+    throw new Error("missing_agent_token");
+  }
+  return {
+    ...config,
+    supabaseUrl: String(config.supabaseUrl || DEFAULT_SUPABASE_URL).replace(/\/+$/, ""),
+  };
+}
+
+async function postJson(url, body, token = "") {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body || {}),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload.ok === false) {
+    const error = new Error(String(payload.error || response.statusText || "request_failed"));
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
+  }
+  return payload;
+}
+
+async function bind(args) {
+  const code = String(args.code || "").trim().toUpperCase();
+  if (!/^OPB-[A-F0-9]{12}$/.test(code)) {
+    throw new Error("invalid_binding_code_format");
+  }
+  const supabaseUrl = String(args["supabase-url"] || DEFAULT_SUPABASE_URL).replace(/\/+$/, "");
+  const result = await postJson(`${supabaseUrl}/functions/v1/agent-bind`, {
+    code,
+    agentName: String(args["agent-name"] || "Codex").trim().slice(0, 80) || "Codex",
+  });
+  if (!result.agentToken) throw new Error("missing_agent_token_in_response");
+  const config = {
+    supabaseUrl,
+    agentToken: result.agentToken,
+    label: result.label || args["agent-name"] || "Codex",
+    scopes: result.scopes || [],
+    boundAt: new Date().toISOString(),
+  };
+  writeConfig(config);
+  return safeConfigSummary(config);
+}
+
+function writeBoundAgentConfig({ supabaseUrl, agentToken, label, scopes }) {
+  if (!agentToken) throw new Error("missing_agent_token_in_response");
+  const config = {
+    supabaseUrl,
+    agentToken,
+    label: label || "Agent",
+    scopes: scopes || [],
+    boundAt: new Date().toISOString(),
+  };
+  writeConfig(config);
+  return safeConfigSummary(config);
+}
+
+function readStdin() {
+  try {
+    return fs.readFileSync(0, "utf8");
+  } catch (_error) {
+    return "";
+  }
+}
+
+function extractVerificationCode(value) {
+  const raw = String(value || "").trim();
+  const onepilotCode = raw.match(/(?:验证码|verification code|code)[^0-9]{0,20}([0-9]{6,8})/i)?.[1];
+  if (onepilotCode) return onepilotCode;
+  return raw.match(/\b([0-9]{6,8})\b/)?.[1] || raw;
+}
+
+async function bindEmail(args) {
+  const mode = args._[1] || "start";
+  const supabaseUrl = String(args["supabase-url"] || DEFAULT_SUPABASE_URL).replace(/\/+$/, "");
+  const email = String(args.email || "").trim().toLowerCase();
+  const agentName = String(args["agent-name"] || "Codex").trim().slice(0, 80) || "Codex";
+  if (!email) throw new Error("missing_email");
+
+  if (mode === "start") {
+    return postJson(`${supabaseUrl}/functions/v1/agent-email-bind-start`, {
+      email,
+      agentName,
+    });
+  }
+
+  if (mode === "verify") {
+    const rawCode = args["code-stdin"] ? readStdin() : String(args.code || args.token || "");
+    const code = extractVerificationCode(rawCode);
+    if (!code) throw new Error("missing_code");
+    const result = await postJson(`${supabaseUrl}/functions/v1/agent-email-bind-verify`, {
+      email,
+      code,
+      agentName,
+    });
+    return writeBoundAgentConfig({
+      supabaseUrl,
+      agentToken: result.agentToken,
+      label: result.label || agentName,
+      scopes: result.scopes || [],
+    });
+  }
+
+  throw new Error("unsupported_bind_email_mode");
+}
+
+async function recommend(args) {
+  const config = requireConfig();
+  const payload = {
+    query: String(args.query || "").trim(),
+    limit: args.limit ? Number(args.limit) : 3,
+    useSavedMemory: args["use-saved-memory"] !== "false",
+    profile: {
+      topics: splitList(args.topics),
+      needs: splitList(args.needs),
+    },
+    preferences: {
+      districts: splitList(args.districts),
+      formats: splitList(args.formats),
+    },
+  };
+  return postJson(`${config.supabaseUrl}/functions/v1/agent-recommend`, payload, config.agentToken);
+}
+
+async function memory(args) {
+  const config = requireConfig();
+  const mode = args._[1] || "view";
+  if (mode === "view") {
+    return postJson(`${config.supabaseUrl}/functions/v1/agent-memory`, { mode: "view" }, config.agentToken);
+  }
+  if (mode === "delete") {
+    const memoryType = args.all ? "all" : String(args.type || "").trim();
+    if (!memoryType) throw new Error("missing_memory_type");
+    return postJson(`${config.supabaseUrl}/functions/v1/agent-memory`, {
+      mode: "delete",
+      memoryType,
+    }, config.agentToken);
+  }
+  if (mode !== "merge") throw new Error("unsupported_memory_mode");
+  const memoryType = String(args.type || "").trim();
+  const rawJson = String(args.json || "").trim();
+  if (!memoryType) throw new Error("missing_memory_type");
+  if (!rawJson) throw new Error("missing_memory_json");
+  let payload;
+  try {
+    payload = JSON.parse(rawJson);
+  } catch (_error) {
+    throw new Error("invalid_memory_json");
+  }
+  return postJson(`${config.supabaseUrl}/functions/v1/agent-memory`, {
+    mode: "merge",
+    memoryType,
+    payload,
+  }, config.agentToken);
+}
+
+function normalizeFrequency(value) {
+  const frequency = String(value || "daily").trim().toLowerCase();
+  if (frequency !== "daily") throw new Error("unsupported_subscription_frequency");
+  return "daily";
+}
+
+function publicSubscription(value) {
+  if (!value || typeof value !== "object") {
+    return { enabled: false };
+  }
+  return {
+    enabled: Boolean(value.enabled),
+    frequency: value.frequency || "daily",
+    query: value.query || "",
+    topics: Array.isArray(value.topics) ? value.topics : [],
+    districts: Array.isArray(value.districts) ? value.districts : [],
+    formats: Array.isArray(value.formats) ? value.formats : [],
+    lastRunAt: value.lastRunAt || "",
+    updatedAt: value.updatedAt || "",
+  };
+}
+
+function timestampMs(value) {
+  if (!value) return 0;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function dailyDue(subscription, now = new Date()) {
+  const current = publicSubscription(subscription);
+  if (!current.enabled) {
+    return { due: false, reason: "subscription_disabled", subscription: current };
+  }
+  const lastRunMs = timestampMs(current.lastRunAt);
+  if (!lastRunMs) {
+    return { due: true, reason: "never_run", subscription: current };
+  }
+  const nextRunMs = lastRunMs + DAILY_INTERVAL_MS;
+  const nowMs = now.getTime();
+  return {
+    due: nowMs >= nextRunMs,
+    reason: nowMs >= nextRunMs ? "daily_window_elapsed" : "too_soon",
+    nextRunAt: new Date(nextRunMs).toISOString(),
+    subscription: current,
+  };
+}
+
+async function subscription(args) {
+  const config = requireConfig();
+  const mode = args._[1] || "view";
+  if (mode === "view") {
+    return { ok: true, subscription: publicSubscription(config.subscription) };
+  }
+  if (mode === "due") {
+    const result = dailyDue(config.subscription);
+    return {
+      ok: true,
+      ...result,
+      instruction: result.due
+        ? "Call subscription run-now, then deliver the recommendation through the user's chosen local channel."
+        : "Do not send a subscription update yet.",
+    };
+  }
+  if (mode === "disable") {
+    const nextConfig = {
+      ...config,
+      subscription: {
+        ...publicSubscription(config.subscription),
+        enabled: false,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+    writeConfig(nextConfig);
+    return { ok: true, subscription: publicSubscription(nextConfig.subscription) };
+  }
+  if (mode === "set") {
+    const nextSubscription = {
+      enabled: true,
+      frequency: normalizeFrequency(args.frequency),
+      query: String(args.query || "").trim(),
+      topics: splitList(args.topics),
+      districts: splitList(args.districts),
+      formats: splitList(args.formats),
+      lastRunAt: config.subscription?.lastRunAt || "",
+      updatedAt: new Date().toISOString(),
+    };
+    if (!nextSubscription.query && !nextSubscription.topics.length && !nextSubscription.districts.length && !nextSubscription.formats.length) {
+      throw new Error("missing_subscription_preferences");
+    }
+    const nextConfig = { ...config, subscription: nextSubscription };
+    writeConfig(nextConfig);
+    return { ok: true, subscription: publicSubscription(nextSubscription) };
+  }
+  if (mode === "run-now") {
+    const current = publicSubscription(config.subscription);
+    if (!current.enabled) throw new Error("subscription_disabled");
+    const result = await recommend({
+      query: current.query,
+      topics: current.topics.join(","),
+      districts: current.districts.join(","),
+      formats: current.formats.join(","),
+      limit: args.limit || 3,
+    });
+    const nextConfig = {
+      ...readConfig(),
+      subscription: {
+        ...current,
+        lastRunAt: new Date().toISOString(),
+      },
+    };
+    writeConfig(nextConfig);
+    return {
+      ok: true,
+      subscription: publicSubscription(nextConfig.subscription),
+      recommendation: result,
+      instruction: "Use these structured recommendations to write a concise subscription update in the user's language. Pick the strongest item first.",
+    };
+  }
+  throw new Error("unsupported_subscription_mode");
+}
+
+async function eventContext(args) {
+  const config = requireConfig();
+  const detailToken = String(args["detail-token"] || "").trim();
+  if (!detailToken) throw new Error("missing_detail_token");
+  return postJson(`${config.supabaseUrl}/functions/v1/agent-event-context`, { detailToken }, config.agentToken);
+}
+
+async function application(args) {
+  const mode = args._[1] || "prepare";
+  if (mode !== "prepare") throw new Error("unsupported_application_mode");
+  const questions = String(args.questions || args.question || "").trim();
+  if (!questions) throw new Error("missing_application_questions");
+  const [context, savedMemory] = await Promise.all([
+    eventContext(args),
+    memory({ _: ["memory", "view"] }),
+  ]);
+  return {
+    ok: true,
+    questions,
+    eventContext: context,
+    memory: savedMemory.memory || [],
+    instruction: [
+      "Generate draft application answers locally. Use eventContext as activity truth and memory as reusable user facts.",
+      "Ask the user before inventing missing personal facts. Do not expose external registration URLs unless the user opens the OnePilot event page.",
+    ].join(" "),
+  };
+}
+
+async function main() {
+  const args = readArgs(process.argv.slice(2));
+  const command = args._[0] || "help";
+  let result;
+  if (command === "help" || args.help) {
+    process.stdout.write(usage());
+    return;
+  }
+  if (command === "status") {
+    result = safeConfigSummary(readConfig());
+  } else if (command === "bind") {
+    result = await bind(args);
+  } else if (command === "bind-email") {
+    result = await bindEmail(args);
+  } else if (command === "recommend") {
+    result = await recommend(args);
+  } else if (command === "memory") {
+    result = await memory(args);
+  } else if (command === "subscription") {
+    result = await subscription(args);
+  } else if (command === "application") {
+    result = await application(args);
+  } else if (command === "event-context") {
+    result = await eventContext(args);
+  } else {
+    throw new Error(`unknown_command:${command}`);
+  }
+  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+}
+
+main().catch((error) => {
+  const output = {
+    ok: false,
+    error: error instanceof Error ? error.message : String(error),
+    status: error?.status,
+  };
+  process.stderr.write(`${JSON.stringify(output, null, 2)}\n`);
+  process.exit(1);
+});
