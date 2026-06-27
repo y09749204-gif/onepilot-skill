@@ -7,7 +7,7 @@ description: Bind Codex or another local coding agent to OnePilot and use OnePil
 
 Use OnePilot to connect this local agent to the user's OnePilot account and request personalized event recommendations.
 
-For agent-specific packaging notes, read the matching file in `references/`: `codex.md`, `openclaw.md`, `claude-code.md`, or `workbuddy.md`.
+Core behavior lives in this file and applies to every local agent. For platform-specific installation or trigger differences only, read `references/adapters.md`. Do not duplicate OnePilot business logic in per-agent notes.
 
 ## Quick Start
 
