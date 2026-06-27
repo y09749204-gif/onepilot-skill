@@ -1,4 +1,4 @@
 interface:
   display_name: "OnePilot Skill"
-  short_description: "Bind OnePilot, recommend events, save memory, and prepare applications."
-  default_prompt: "Bind this agent to OnePilot, then recommend matching events and help maintain my preferences."
+  short_description: "Bind OnePilot, recommend events, save memory, record feedback, and prepare applications."
+  default_prompt: "Bind this agent to OnePilot, recommend matching events, learn from my reactions, and help maintain my preferences."
