@@ -29,6 +29,7 @@ Usage:
   onepilot-agent.mjs subscription disable
   onepilot-agent.mjs application prepare --detail-token dt_xxx --questions TEXT
   onepilot-agent.mjs event-context --detail-token dt_xxx
+  onepilot-agent.mjs feedback record --recommendation-id rec_xxx --action interested [--position 0] [--profile-json '{}'] [--target-profile-json '{}']
 `;
 }
 
@@ -256,6 +257,41 @@ async function memory(args) {
   }, config.agentToken);
 }
 
+function parseOptionalJson(value, errorName) {
+  const raw = String(value || "").trim();
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(errorName);
+    return parsed;
+  } catch (_error) {
+    throw new Error(errorName);
+  }
+}
+
+async function feedback(args) {
+  const mode = args._[1] || "record";
+  if (mode !== "record") throw new Error("unsupported_feedback_mode");
+  const config = requireConfig();
+  const recommendationId = String(args["recommendation-id"] || args.recommendation || "").trim();
+  const resourceId = String(args["resource-id"] || "").trim();
+  const action = String(args.action || "").trim();
+  if (!recommendationId) throw new Error("missing_recommendation_id");
+  if (!action) throw new Error("missing_feedback_action");
+  return postJson(`${config.supabaseUrl}/functions/v1/agent-feedback`, {
+    recommendationId,
+    resourceId,
+    resourceType: String(args["resource-type"] || "event").trim(),
+    action,
+    source: String(args.source || "agent").trim(),
+    position: args.position === undefined ? undefined : Number(args.position),
+    note: String(args.note || "").trim(),
+    requesterProfile: parseOptionalJson(args["profile-json"], "invalid_profile_json"),
+    targetProfile: parseOptionalJson(args["target-profile-json"], "invalid_target_profile_json"),
+    metadata: parseOptionalJson(args["metadata-json"], "invalid_metadata_json"),
+  }, config.agentToken);
+}
+
 function normalizeFrequency(value) {
   const frequency = String(value || "daily").trim().toLowerCase();
   if (frequency !== "daily") throw new Error("unsupported_subscription_frequency");
@@ -423,6 +459,8 @@ async function main() {
     result = await recommend(args);
   } else if (command === "memory") {
     result = await memory(args);
+  } else if (command === "feedback") {
+    result = await feedback(args);
   } else if (command === "subscription") {
     result = await subscription(args);
   } else if (command === "application") {
