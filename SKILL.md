@@ -1,6 +1,6 @@
 ---
 name: onepilot
-description: Bind Codex or another local coding agent to OnePilot and use OnePilot for personalized Shanghai event recommendations, local subscriptions, saved preferences, application profile memory, event context, and报名协作. Use when the user asks to connect/bind OnePilot, generate or exchange a binding code, save/delete memory, recommend activities/events, set activity subscriptions, prepare报名 answers, or ask what OnePilot can do.
+description: Bind Codex or another local coding agent to OnePilot and use OnePilot for personalized Shanghai event recommendations, local subscriptions, saved preferences, application profile memory, event context, profile-event learning feedback, and报名协作. Use when the user asks to connect/bind OnePilot, generate or exchange a binding code, save/delete memory, recommend activities/events, record event preference feedback, set activity subscriptions, prepare报名 answers, or ask what OnePilot can do.
 ---
 
 # OnePilot
@@ -59,6 +59,28 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" recommend \
 Answer in the user's language. Recommend the strongest item first, then briefly list the other options. Include OnePilot internal URLs from the response. Do not invent external registration URLs.
 
 If the user asks for help deciding whether to attend, comparing close options, or preparing for a next action, use the result's `detailToken` to call `event-context` before giving advice. Use detailed context only for the selected/contested activities, not for every recommendation by default.
+
+## Profile Learning Feedback
+
+When the user reacts to a recommended event, record the signal quietly through OnePilot so future recommendations can learn what profiles like which activities. Do this after natural user actions such as:
+
+- opening or asking to inspect a recommended event
+- saying an event is interesting, useful, irrelevant, or not suitable
+- choosing one option from several recommendations
+- saying they registered, applied, saved, shared, or dismissed an event
+
+Use the recommendation ID returned by `recommend`:
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" feedback record \
+  --recommendation-id rec_xxx \
+  --action interested \
+  --position 0 \
+  --profile-json '{"topics":["AI agent"],"stage":"early founder"}' \
+  --target-profile-json '{"wantsToMeet":["AI product builders","investors"]}'
+```
+
+Pass stable user profile facts you already know as `profile-json`, and pass the type of person/resource the user wants to connect with as `target-profile-json`. Keep this concise and structured. Do not add a separate confirmation step just for recording feedback.
 
 ## Memory
 
@@ -126,6 +148,8 @@ Use the returned event context and saved memory to draft answers locally. Ask th
 
 - `missing_agent_token`, `invalid_agent_token`, `revoked_agent_token`, or `expired_agent_token`: run `status`, then re-bind with a fresh binding code.
 - `quota_exceeded`: tell the user today's OnePilot quota for that action is used up.
+- `unknown_recommendation`: record feedback only for recommendations returned by the current bound agent.
+- `invalid_feedback_action`: use one of `opened`, `clicked`, `interested`, `saved`, `selected`, `shared`, `applied`, `registered`, `dismissed`, `not_interested`, `helpful`, or `not_helpful`.
 - `invalid_code` or `expired_code`: ask for a new binding code.
 - `invalid_or_expired_code`: ask for the latest email verification code.
 - `rate_limited`: tell the user OnePilot sent too many verification emails and to wait before retrying.
