@@ -46,6 +46,10 @@ This saves the agent token to `~/.config/onepilot/agent.json` with `0600` permis
 
 ## Recommend Events
 
+Before recommending events, establish the user's available time. If the user has not already given a time range, first ask whether they have a local calendar/schedule tool available and whether they agree to let this agent read free/busy information. Examples include Feishu/Lark Calendar, Google Calendar, Apple Calendar, Outlook, or another local schedule tool.
+
+If the user agrees and the tool is available, read only the minimum availability needed for the recommendation task, then use the free windows as recommendation context. If no schedule tool is available, or the user does not agree, ask conversationally for usable time ranges such as this weekend, weekday evenings, or specific dates. Do not ask OnePilot cloud to connect directly to the user's calendar.
+
 For event recommendations, call:
 
 ```bash

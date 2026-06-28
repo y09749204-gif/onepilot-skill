@@ -67,6 +67,14 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" bind --code OPB-X
 
 ## 推荐活动
 
+推荐前，如果用户没有说明可参加时间，agent 应先询问：
+
+```text
+你有没有本地日程工具，并且是否同意我读取你的空闲时间？如果没有或不同意，我也可以直接通过对话了解你的可用时间。
+```
+
+如果用户同意且 agent 有飞书日历、Google Calendar、本地日历或其他日程工具，就只读取本次推荐所需的空闲时间。没有工具或用户不同意时，再通过对话收集时间范围。OnePilot 云端第一版不直接连接用户日历。
+
 ```bash
 node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" recommend \
   --query "这周有什么适合我的 AI agent 创业活动" \

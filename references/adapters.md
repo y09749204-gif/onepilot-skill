@@ -21,6 +21,8 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" status
 
 For non-Codex installs, replace the path with the local OnePilot Skill path used by that platform.
 
+For event recommendations, ask the user whether a local schedule/calendar tool is available and whether they agree to let the agent read availability. Only read free/busy information after agreement. If no tool is available or the user declines, collect availability conversationally.
+
 ## Codex
 
 - Install into `$HOME/.codex/skills/onepilot`.
