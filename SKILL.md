@@ -86,7 +86,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" recommend \
   --limit 3
 ```
 
-Answer in the user's language. Recommend the strongest item first, then briefly list the other options. Include OnePilot internal URLs from the response. Do not invent external registration URLs.
+Answer in the user's language. Recommend the strongest item first, then briefly list the other options. Include OnePilot internal URLs from the response. Do not invent external registration URLs. After every event recommendation response, end with a short reminder in the user's language: if they want to register, they can send a screenshot of the application form or questions and you can help prepare draft answers.
 
 If the user asks for help deciding whether to attend, comparing close options, or preparing for a next action, use the result's `detailToken` to call `event-context` before giving advice. Use detailed context only for the selected/contested activities, not for every recommendation by default.
 
