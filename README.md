@@ -55,7 +55,9 @@ chmod +x "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs"
 node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" status
 ```
 
-如果返回 `bound: false`，说明还没有绑定 OnePilot 账号。
+如果返回 `bound: false`，说明还没有绑定 OnePilot 账号。agent 应主动告诉用户 OnePilot 已安装但未绑定，并询问是否现在通过邮箱验证码或网站绑定码完成绑定。
+
+同一 OnePilot 账号同时只保留一个有效 agent。新设备或新 agent 绑定成功后，旧设备上的 agent token 会自动失效；推荐额度按账号共享，不按设备或 agent 单独计算。
 
 ## 第一阶段分发渠道
 

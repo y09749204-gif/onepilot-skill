@@ -1,6 +1,6 @@
 {
   "name": "onepilot-skill",
-  "version": "0.1.3-alpha",
+  "version": "0.1.4-alpha",
   "displayName": "OnePilot Skill",
   "description": "Connect Qwen Code or another local agent to OnePilot for OPC and AI startup event recommendations, saved memory, subscriptions, feedback, issue reporting, and application help. Official website: https://onepilot.zeabur.app",
   "publisher": "OnePilot",

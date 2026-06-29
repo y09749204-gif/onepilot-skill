@@ -60,6 +60,20 @@ If no connector for the user's mailbox is available, ask the user to install or 
 
 This saves the agent token to `~/.config/onepilot/agent.json` with `0600` permissions. Never print, paste, commit, or expose the token.
 
+## First Run Behavior
+
+After installation or whenever `status` is run, read `nextAction` and `userFacingPrompt`. Do not stop at showing JSON. Act on it.
+
+If `bound: false`, proactively tell the user in Chinese that OnePilot Skill is installed but not bound, then ask whether to bind now. Prefer mailbox-tool binding when an email connector is available; otherwise ask for a website binding code.
+
+If `bound: true`, proactively tell the user what OnePilot can do next: recommend OPC and AI startup events, remember preferences and application materials, set local subscriptions, and prepare报名 answers.
+
+## Binding Policy
+
+One OnePilot account can have only one active agent token at a time. Binding a new device or agent is allowed and automatically revokes the previous active agent token. If an old device later receives `revoked_agent_token`, run `status` and re-bind with a fresh email code or website binding code.
+
+Recommendation quota is account-based, not agent-based. All devices and agents bound to the same OnePilot account share the same daily recommendation quota.
+
 ## Version And Updates
 
 The local version is stored in `VERSION`. Use:

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.4-alpha
+
+- Added first-run `status.nextAction` and `status.userFacingPrompt` so agents proactively introduce OnePilot and guide account binding.
+- Documented single-active-agent binding behavior: rebinding a new agent revokes the previous token.
+- Documented that recommendation quota is account-based and shared across devices/agents.
+
 ## v0.1.3-alpha
 
 - Set the free activity recommendation quota to 3 requests per day.
