@@ -207,7 +207,7 @@ After the user confirms they registered or submitted, check whether a calendar t
 ## Error Handling
 
 - `missing_agent_token`, `invalid_agent_token`, `revoked_agent_token`, or `expired_agent_token`: run `status`, then re-bind with a fresh binding code.
-- `quota_exceeded`: tell the user today's OnePilot quota for that action is used up.
+- `quota_exceeded`: tell the user "今天的 OnePilot 活动推荐次数已经用完（每天 3 次）。你可以明天再让我推荐，或者直接打开 OnePilot 网站查看活动列表。"
 - `unknown_recommendation`: record feedback only for recommendations returned by the current bound agent.
 - `invalid_feedback_action`: use one of `opened`, `clicked`, `interested`, `saved`, `selected`, `shared`, `applied`, `registered`, `dismissed`, `not_interested`, `helpful`, or `not_helpful`.
 - `invalid_code` or `expired_code`: ask for a new binding code.

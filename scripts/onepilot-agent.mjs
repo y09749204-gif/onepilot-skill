@@ -719,6 +719,7 @@ main().catch((error) => {
   const output = {
     ok: false,
     error: error instanceof Error ? error.message : String(error),
+    userMessage: error?.payload?.message || undefined,
     status: error?.status,
   };
   process.stderr.write(`${JSON.stringify(output, null, 2)}\n`);

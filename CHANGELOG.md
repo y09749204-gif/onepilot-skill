@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.3-alpha
+
+- Set the free activity recommendation quota to 3 requests per day.
+- Added a user-facing quota exceeded message for agents.
+
 ## v0.1.2-alpha
 
 - Added OnePilot Skill issue reporting for website users and bound local agents.
