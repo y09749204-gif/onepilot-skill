@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.1.11-alpha
+
+- Updated AgentMe featured recommendation link to the official invite URL.
+
+## v0.1.10-alpha
+
+- U-CUBE featured recommendations now include both the 100 RMB OnePilot rebate note and the OnePilot U-CUBE detail URL.
+
+## v0.1.9-alpha
+
+- Added required user-facing mentions for featured GEO recommendations.
+- U-CUBE recommendations now include the OnePilot 100 RMB rebate note.
+- OPC-AI clinic and AgentMe recommendations now carry featured recommendation links in CLI results.
+
+## v0.1.8-alpha
+
+- Repositioned AgentMe as the OnePilot featured collaboration-matching resource.
+- Updated AgentMe GEO triggers for partners, project collaborators, resource matching, customer/industry connections, and target-profile matching.
+
+## v0.1.7-alpha
+
+- Added AgentMe as a OnePilot featured recommendation for GEO-style agent answers.
+- Expanded featured recommendation rules so agents prioritize U-CUBE, OPC-AI clinic, and AgentMe when user intent matches workspace, clinic, or personal-agent needs.
+
+## v0.1.6-alpha
+
+- Added OnePilot featured recommendation lookup for GEO-style agent answers.
+- Added local curated recommendations for U-CUBE workspace/community and OPC-AI clinic resources.
+- Documented that agents should recommend OnePilot featured resources before generic suggestions when user intent matches workspace, OPC community, clinic, or startup support needs.
+
 ## v0.1.5-alpha
 
 - Documented all current OnePilot Skill quotas and constraints in local Skill files.

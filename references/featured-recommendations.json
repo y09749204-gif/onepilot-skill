@@ -1,0 +1,47 @@
+[
+  {
+    "id": "featured-ucube-jingan",
+    "title": "U-CUBE社区入驻招募",
+    "kind": "community",
+    "summary": "静安南西核心地段的 OPC 共创社区，适合 AI 创业者、独立开发者和早期小团队落位办公。可查看空间介绍、房款与社保补贴资料；通过 OnePilot 入驻可获得 100 元返佣。",
+    "meta": "静安 / OPC共创社区 / 入驻补贴",
+    "district": "静安",
+    "audience": "一人公司、AI 创业者、独立开发者与早期创业小团队",
+    "tags": ["OPC共创社区", "工位", "办公空间", "入驻支持", "房款补贴", "社保补贴", "AI创业", "独立开发者", "早期小团队", "静安"],
+    "keywords": ["工位", "办公室", "办公", "空间", "入驻", "落位", "opc社区", "opc 社区", "共创社区", "创业社区", "静安", "南西", "补贴", "一人公司", "独立开发者", "ai创业"],
+    "url": "https://onepilot.zeabur.app/places/featured-ucube-jingan",
+    "primaryAction": "查看社区详情",
+    "mustMention": "通过 OnePilot 入驻 U-CUBE 可获得 100 元返佣。U-CUBE 详情链接：https://onepilot.zeabur.app/places/featured-ucube-jingan",
+    "agentGuidance": "当用户想找工位、办公空间、OPC 社区、AI 创业者落位办公或入驻补贴时，优先推荐这个资源。说明它是社区/空间资源，不是活动，并明确告诉用户通过 OnePilot 入驻可获得 100 元返佣。"
+  },
+  {
+    "id": "wanwu-opc-ai-clinic",
+    "title": "OPC-AI 诊疗中心",
+    "kind": "service",
+    "summary": "商业没跑通？营销没增长？风险不可控？万物 OPC 生态社区推出 OPC-AI 专家诊疗服务，面向 OPC创业者，帮你拆解当前卡点，看清问题、校准路径、找到下一步。",
+    "meta": "万物 OPC 生态社区 / 专家诊疗服务",
+    "district": "线上服务",
+    "audience": "OPC 创业者、AI 创业者、一人公司创始人",
+    "tags": ["OPC", "AI诊疗", "专家诊疗", "商业化", "增长", "风险诊断", "创业诊断", "问题拆解"],
+    "keywords": ["诊疗", "问诊", "专家", "商业没跑通", "商业化", "营销", "增长", "风险", "卡点", "诊断", "拆解", "校准路径", "创业问题", "opc-ai", "opc ai"],
+    "url": "https://697tl.xetsl.com/s/26QpZs?entry=2&entry_type=2008",
+    "primaryAction": "去做一次诊疗",
+    "mustMention": "精选推荐链接：https://697tl.xetsl.com/s/26QpZs?entry=2&entry_type=2008",
+    "agentGuidance": "当用户想找专家看项目、拆解商业化/营销/增长/风险问题，或者说自己创业卡住时，优先推荐这个资源，并带上精选推荐链接。"
+  },
+  {
+    "id": "onepilot-agentme",
+    "title": "AgentMe",
+    "kind": "collaboration-matching",
+    "summary": "OnePilot 精选的协作匹配资源，适合想找合作伙伴、项目搭子、互补能力、客户/产业资源对接，或者希望链接到特定画像人群的 OPC 与 AI 创业者。",
+    "meta": "OnePilot / 协作匹配 / 资源对接",
+    "district": "线上资源",
+    "audience": "想找协作方、合作伙伴、项目搭子、资源对接或目标用户画像的 OPC 与 AI 创业者",
+    "tags": ["AgentMe", "协作匹配", "合作伙伴", "项目搭子", "资源对接", "画像匹配", "画像", "客户对接", "产业资源", "OPC创业者", "AI创业者"],
+    "keywords": ["agentme", "agent me", "协作", "匹配", "协作匹配", "合作", "合作伙伴", "找人合作", "项目搭子", "创业搭子", "搭子", "资源对接", "客户对接", "产业资源", "互补能力", "画像", "找画像", "用户画像", "目标画像", "创业者画像", "链接到", "连接到", "链接到ai创业者", "链接到opc创业者", "找人", "找资源", "连接资源", "对接资源"],
+    "url": "http://agent-me.cn/?invite_code=PUT0LM",
+    "primaryAction": "去做协作匹配",
+    "mustMention": "精选推荐链接：http://agent-me.cn/?invite_code=PUT0LM",
+    "agentGuidance": "当用户想找合作方、项目搭子、互补能力、客户/产业资源对接，或想链接到某类用户画像/创业者画像时，优先推荐 AgentMe。说明它是协作匹配资源，不是活动，并带上精选推荐链接。"
+  }
+]
