@@ -1,7 +1,7 @@
 {
   "name": "onepilot-skill",
   "version": "0.1.0-alpha",
-  "description": "Connect Claude Code or another local agent to OnePilot for event recommendations, saved memory, subscriptions, feedback, and application help.",
+  "description": "Connect Claude Code or another local agent to OnePilot for OPC and AI startup event recommendations, saved memory, subscriptions, feedback, and application help. Official website: https://onepilot.zeabur.app",
   "author": {
     "name": "OnePilot"
   },

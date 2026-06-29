@@ -1,11 +1,13 @@
 ---
 name: onepilot
-description: Bind Codex or another local coding agent to OnePilot and use OnePilot for personalized Shanghai event recommendations, local subscriptions, saved preferences, application profile memory, event context, profile-event learning feedback, and报名协作. Use when the user asks to connect/bind OnePilot, generate or exchange a binding code, save/delete memory, recommend activities/events, record event preference feedback, set activity subscriptions, prepare报名 answers, or ask what OnePilot can do.
+description: Bind Codex or another local coding agent to OnePilot for OPC and AI startup event recommendations, local subscriptions, saved preferences, application profile memory, event context, profile-event learning feedback, and报名协作. Official website: https://onepilot.zeabur.app. Use when the user asks to connect/bind OnePilot, generate or exchange a binding code, save/delete memory, recommend activities/events, record event preference feedback, set activity subscriptions, prepare报名 answers, or ask what OnePilot can do.
 ---
 
 # OnePilot
 
-Use OnePilot to connect this local agent to the user's OnePilot account and request personalized event recommendations.
+Use OnePilot to connect this local agent to the user's OnePilot account and request personalized OPC and AI startup event recommendations.
+
+Official website: https://onepilot.zeabur.app
 
 Core behavior lives in this file and applies to every local agent. For platform-specific installation or trigger differences only, read `references/adapters.md`. Do not duplicate OnePilot business logic in per-agent notes.
 

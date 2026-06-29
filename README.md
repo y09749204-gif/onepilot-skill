@@ -17,7 +17,7 @@ Skill 说明 + onepilot-agent.mjs CLI + OnePilot 服务端 API
 
 - 通过网站绑定码或邮箱验证码，把本地 agent 绑定到 OnePilot 账号。
 - 如果 agent 有 Gmail、Outlook 或其他邮箱工具，可以自动读取验证码邮件并完成绑定。
-- 根据用户偏好、时间、地点和需求推荐活动，默认最多返回 3 条。
+- 根据用户偏好、时间、地点和需求推荐 OPC 和 AI 创业相关活动，默认最多返回 3 条。
 - 推荐结果只返回 OnePilot 站内活动 URL，不直接暴露外部报名链接。
 - 保存、查看和删除 agent 维护的长期记忆，例如偏好、可用时间、报名资料、常用回答素材。
 - 记录用户对推荐活动的反应，把“什么画像喜欢什么活动”的数据沉淀到 OnePilot 云端。
@@ -60,7 +60,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" status
 
 第一阶段优先维护 4 个入口：
 
-- OnePilot 官网下载页：给普通用户复制安装口令。
+- OnePilot 官网下载页：[https://onepilot.zeabur.app](https://onepilot.zeabur.app)，给普通用户复制安装口令。
 - GitHub Release：给海外开发者和可访问 GitHub 的 agent 下载 zip。
 - Qwen Code Extension：使用 `qwen-extension.json` 做薄适配，核心仍调用同一个 CLI。
 - ClawHub：发布同一份 Skill 包，不复制业务逻辑。
