@@ -20,6 +20,7 @@ const EMAIL_FOOTER = [
   "OnePilot 官网：https://onepilot.zeabur.app",
   "小红书：@One Pilot",
 ].join("\n");
+const REQUIRED_RECOMMENDATION_REMINDER = "如果你要报名，可以把报名表截图或问题发给我，我帮你准备回答草稿。";
 
 function usage() {
   return `OnePilot agent helper
@@ -418,7 +419,18 @@ async function recommend(args) {
       formats: splitList(args.formats),
     },
   };
-  return postJson(`${config.supabaseUrl}/functions/v1/agent-recommend`, payload, config.agentToken);
+  const result = await postJson(`${config.supabaseUrl}/functions/v1/agent-recommend`, payload, config.agentToken);
+  if (result && typeof result === "object" && Array.isArray(result.results)) {
+    return {
+      ...result,
+      requiredClosingReminder: result.requiredClosingReminder || REQUIRED_RECOMMENDATION_REMINDER,
+      agentInstructions: {
+        ...(result.agentInstructions || {}),
+        afterRecommendation: "End the user-facing recommendation answer with requiredClosingReminder.",
+      },
+    };
+  }
+  return result;
 }
 
 async function memory(args) {

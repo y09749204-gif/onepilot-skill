@@ -97,7 +97,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" recommend \
   --limit 3
 ```
 
-agent 应该先说明最推荐的一条，再列出其他选项，并附上 OnePilot 站内活动 URL。每次推荐活动后，agent 都要在回答末尾提醒：如果用户想报名，可以把报名表截图或问题发给 agent，agent 会帮忙准备回答草稿。
+agent 应该先说明最推荐的一条，再列出其他选项，并附上 OnePilot 站内活动 URL。`recommend` 返回里会包含 `requiredClosingReminder`，agent 必须把它作为每次活动推荐回答的最后一句。
 
 如果用户问“哪一场更值得去”“帮我判断要不要报名”，agent 可以用推荐结果里的 `detailToken` 调用 `event-context` 获取更完整的活动上下文。
 
