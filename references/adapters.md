@@ -43,6 +43,7 @@ For event recommendations, ask the user whether a local schedule/calendar tool i
 - Use `--agent-name OpenClaw` when binding.
 - Keep OnePilot state in `~/.config/onepilot/agent.json`.
 - If ClawHub requires scan/publish metadata, add only packaging metadata; do not fork CLI behavior.
+- For first-stage distribution, publish the repository or release zip as a single OnePilot Skill package.
 
 ## Gemini CLI
 
@@ -55,6 +56,7 @@ For event recommendations, ask the user whether a local schedule/calendar tool i
 - Qwen Code expects an extension package, so add a thin `qwen-extension.json` or extension wrapper when publishing there.
 - The wrapper should call the same `scripts/onepilot-agent.mjs`; do not reimplement API calls.
 - Use `--agent-name "Qwen Code"` when binding.
+- The root `qwen-extension.json` points Qwen Code to `SKILL.md` and delegates commands to the shared CLI. If Qwen's registry later requires a stricter extension layout, keep this repository as the source package and generate the registry wrapper from it.
 
 ## opencode
 

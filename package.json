@@ -1,0 +1,45 @@
+{
+  "name": "onepilot-skill",
+  "version": "0.1.0-alpha",
+  "description": "OnePilot Skill and CLI for local agents.",
+  "type": "module",
+  "bin": {
+    "onepilot-agent": "./scripts/onepilot-agent.mjs"
+  },
+  "files": [
+    "SKILL.md",
+    "VERSION",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md",
+    "agents/",
+    "references/",
+    "scripts/",
+    "qwen-extension.json",
+    ".claude-plugin/"
+  ],
+  "scripts": {
+    "version": "node scripts/onepilot-agent.mjs version",
+    "check-update": "node scripts/onepilot-agent.mjs check-update",
+    "status": "node scripts/onepilot-agent.mjs status"
+  },
+  "keywords": [
+    "onepilot",
+    "agent",
+    "skill",
+    "qwen-code",
+    "claude-code",
+    "clawhub",
+    "codex"
+  ],
+  "homepage": "https://onepilot.zeabur.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/y09749204-gif/onepilot-skill.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

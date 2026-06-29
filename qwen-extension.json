@@ -1,0 +1,26 @@
+{
+  "name": "onepilot-skill",
+  "version": "0.1.0-alpha",
+  "displayName": "OnePilot Skill",
+  "description": "Connect Qwen Code or another local agent to OnePilot for Shanghai event recommendations, saved memory, subscriptions, feedback, and application help.",
+  "publisher": "OnePilot",
+  "homepage": "https://onepilot.zeabur.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/y09749204-gif/onepilot-skill.git"
+  },
+  "contextFileName": "SKILL.md",
+  "skills": ".",
+  "commands": [
+    {
+      "name": "onepilot.status",
+      "description": "Check OnePilot binding status.",
+      "command": "node scripts/onepilot-agent.mjs status"
+    },
+    {
+      "name": "onepilot.recommend",
+      "description": "Request OnePilot event recommendations.",
+      "command": "node scripts/onepilot-agent.mjs recommend --limit 3"
+    }
+  ]
+}

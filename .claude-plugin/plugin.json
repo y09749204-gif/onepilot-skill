@@ -1,0 +1,14 @@
+{
+  "name": "onepilot-skill",
+  "version": "0.1.0-alpha",
+  "description": "Connect Claude Code or another local agent to OnePilot for event recommendations, saved memory, subscriptions, feedback, and application help.",
+  "author": {
+    "name": "OnePilot"
+  },
+  "homepage": "https://onepilot.zeabur.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/y09749204-gif/onepilot-skill.git"
+  },
+  "skills": "."
+}
