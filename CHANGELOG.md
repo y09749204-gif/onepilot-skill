@@ -1,10 +1,14 @@
 # Changelog
 
-## v0.1.1-alpha
+## v0.1.2-alpha
 
 - Added OnePilot Skill issue reporting for website users and bound local agents.
 - Added `onepilot-agent.mjs issue report` for agent-side bug reports with sanitized context.
 - Documented when agents should report Skill bugs without interrupting the user.
+
+## v0.1.1-alpha
+
+- Added OnePilot official website links to listing metadata across release channels.
 
 ## v0.1.0-alpha
 

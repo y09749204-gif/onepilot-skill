@@ -1,6 +1,6 @@
 {
   "name": "onepilot-skill",
-  "version": "0.1.1-alpha",
+  "version": "0.1.2-alpha",
   "description": "OnePilot Skill and CLI for local agents, including issue reporting. Official website: https://onepilot.zeabur.app",
   "type": "module",
   "bin": {
