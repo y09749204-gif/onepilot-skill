@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.13-alpha
+
+- Hardened recommendation and event-context answer guidance so agents prioritize title, date, district, venue, reason, and OnePilot URL over noisy summaries.
+- Added stdin-based JSON options for PowerShell-friendly memory, feedback, and issue metadata workflows.
+- Tightened update/install safety by trusting verified package hosts and refusing unverified fallback packages by default.
+- Documented issue report daily limits in local status and policy output.
+
 ## v0.1.12-alpha
 
 - Added subscription fallback behavior for personalized email/activity pushes.
