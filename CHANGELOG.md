@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.17-alpha
+
+- Added direct OnePilot event URL/id lookup for `application form`, so agents can fetch a known event's hosted application form without spending recommendation quota.
+- Documented that known OnePilot event registration should use `--event-url` or `--event-id` first, and only use `detailToken` for recommendation results.
+- Added clearer error handling for missing, ambiguous, or invalid application form event references.
+
 ## v0.1.16-alpha
 
 - Added the internal application submit attempt quota to local status policy output and docs.

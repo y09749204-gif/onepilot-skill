@@ -264,7 +264,21 @@ Prefer the OnePilot internal event URL for ordinary user reading. Use event cont
 
 ## Application Help
 
-When the user wants to register for a recommended event, first check whether it supports OnePilot-hosted internal registration. Use the recommendation `detailToken`:
+When the user gives a OnePilot internal event URL and wants to register, do not call `recommend` just to obtain a `detailToken`. Fetch the form directly from the event URL:
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
+  --event-url "https://onepilot.zeabur.app/events/EVENT_ID"
+```
+
+If you already know the OnePilot event id, you may use:
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
+  --event-id EVENT_ID
+```
+
+When the user wants to register for a recommended event, use the recommendation `detailToken`:
 
 ```bash
 node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
@@ -297,7 +311,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application qr \
 
 Tell the user to join the event group after sending the QR code. If no QR image is configured, use `nextStep.message` and say the organizer will follow up.
 
-If `applicationForm.agentFillAvailable` is false, do not call `application prepare` with the same `detailToken`; `application form` has already consumed it. Use the returned `event` and `memory` from `application form`, then OCR or collect the external form questions and draft answers locally.
+If `applicationForm.agentFillAvailable` is false, use the returned `event` and `memory` from `application form`, then OCR or collect the external form questions and draft answers locally. If the form was fetched with `--detail-token`, do not call `application prepare` with that same `detailToken`; `application form` has already consumed it.
 
 If the user starts from an external form screenshot or question text before you have called `application form`, you may use the older draft-only flow:
 
@@ -321,6 +335,10 @@ After the user confirms they registered or submitted, check whether a calendar t
 - `invalid_or_expired_code`: ask for the latest email verification code.
 - `rate_limited`: tell the user OnePilot sent too many verification emails and to wait before retrying.
 - `subscription_disabled`: ask whether to re-enable the local subscription.
+- `missing_event_reference`: ask for a OnePilot event URL, event id, or a recommendation detail token.
+- `ambiguous_event_reference`: use exactly one of `--detail-token`, `--event-url`, or `--event-id`.
+- `invalid_event_url`: ask for a OnePilot event page URL instead of an external registration URL.
+- `event_not_found`: tell the user the OnePilot event was not found or is no longer published.
 - `missing_application_questions`: ask the user for the form questions or OCR the screenshot if provided.
 - `internal_application_unavailable`: explain that this event does not support OnePilot-hosted agent submission; ask for an external form screenshot or questions instead.
 - `confirmation_required`: show the draft answers and ask the user to confirm before submitting.

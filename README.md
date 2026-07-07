@@ -237,7 +237,21 @@ OnePilot 官网：https://onepilot.zeabur.app
 
 ## 报名协作
 
-如果活动支持 OnePilot 站内直报名，agent 可以先读取站内报名表字段：
+如果用户已经给了 OnePilot 站内活动链接，agent 可以直接读取站内报名表字段，不需要先调用推荐接口获取 `detailToken`：
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
+  --event-url "https://onepilot.zeabur.app/events/EVENT_ID"
+```
+
+如果 agent 已经知道 OnePilot 活动 id，也可以直接用：
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
+  --event-id EVENT_ID
+```
+
+如果活动来自推荐结果，agent 可以用推荐结果里的 `detailToken` 读取报名表字段：
 
 ```bash
 node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
@@ -263,7 +277,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application qr \
 
 命令会返回 `imagePath`。支持发图的渠道就把这个本地图片上传/内嵌发送，支持 Markdown 图片的渠道就渲染为图片；只有当前渠道不能发图或渲染图片时，才退回发送二维码链接。如果没有二维码，就使用 `nextStep.message` 告诉用户后续等待活动方通知。
 
-如果 `application form` 返回不支持站内直报名，agent 应直接使用这次返回的活动信息和记忆，结合用户提供的截图/OCR/问题文本生成草稿。不要再用同一个 `detailToken` 调 `application prepare`，因为它已经被 `application form` 消耗。
+如果 `application form` 返回不支持站内直报名，agent 应直接使用这次返回的活动信息和记忆，结合用户提供的截图/OCR/问题文本生成草稿。如果这次是用 `--detail-token` 拉取的，不要再用同一个 `detailToken` 调 `application prepare`，因为它已经被 `application form` 消耗。
 
 外部报名表不由 OnePilot 自动提交。用户一开始就提供报名问题文本，或者让 agent 从截图 OCR 出问题后，可以运行：
 

@@ -48,7 +48,7 @@ Usage:
   onepilot-agent.mjs subscription run-now
   onepilot-agent.mjs subscription disable
   onepilot-agent.mjs application prepare --detail-token dt_xxx --questions TEXT
-  onepilot-agent.mjs application form --detail-token dt_xxx
+  onepilot-agent.mjs application form --detail-token dt_xxx | --event-url URL | --event-id EVENT_ID
   onepilot-agent.mjs application submit --event-id EVENT_ID --form-version VERSION --answers-json '{"name":"..."}' | --answers-json-stdin
   onepilot-agent.mjs application qr --url IMAGE_URL [--output /path/to/qr.png]
   onepilot-agent.mjs event-context --detail-token dt_xxx
@@ -875,8 +875,13 @@ async function application(args) {
 
   if (mode === "form") {
     const detailToken = String(args["detail-token"] || "").trim();
-    if (!detailToken) throw new Error("missing_detail_token");
-    return postJson(`${config.supabaseUrl}/functions/v1/agent-application-form`, { detailToken }, config.agentToken);
+    const eventUrl = String(args["event-url"] || args.eventUrl || "").trim();
+    const eventId = String(args["event-id"] || args.eventId || "").trim();
+    const references = [detailToken, eventUrl, eventId].filter(Boolean);
+    if (!references.length) throw new Error("missing_event_reference");
+    if (references.length > 1) throw new Error("ambiguous_event_reference");
+    const body = detailToken ? { detailToken } : eventUrl ? { eventUrl } : { eventId };
+    return postJson(`${config.supabaseUrl}/functions/v1/agent-application-form`, body, config.agentToken);
   }
 
   if (mode === "submit") {
