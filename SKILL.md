@@ -108,6 +108,7 @@ Fixed quotas:
 - Activity recommendations: 5 requests per account per day.
 - Recommendation results: at most 3 activities per request.
 - Event context /报名协作 context: 20 requests per account per day.
+- OnePilot-hosted internal application submit attempts: 20 per account per day.
 - Website binding codes: 5 generated codes per account per day.
 - Local subscription: only `daily` frequency is supported; `subscription due` prevents more than one due run in a day.
 

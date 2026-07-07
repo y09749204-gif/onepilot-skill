@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.16-alpha
+
+- Added the internal application submit attempt quota to local status policy output and docs.
+- Supports the production migration that grants `application:submit` to existing active agent tokens.
+
 ## v0.1.15-alpha
 
 - Added OnePilot-hosted internal event application flow for agents: fetch form fields, draft answers from memory, require user confirmation, and submit structured answers.

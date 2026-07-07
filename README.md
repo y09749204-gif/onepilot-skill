@@ -148,6 +148,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" featured search -
 - 活动推荐：每天 5 次请求。
 - 单次推荐结果：最多 3 条活动。
 - 活动上下文 / 报名协作上下文：每天 20 次。
+- 站内报名提交尝试：每天 20 次。
 - 网站绑定码：每天最多生成 5 个。
 - 本地订阅：第一版只支持 `daily`，最多每天触发一次。
 

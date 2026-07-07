@@ -401,6 +401,7 @@ function accountPolicySummary() {
       recommendationRequestsPerDay: 5,
       recommendationResultsPerRequest: 3,
       eventContextRequestsPerDay: 20,
+      applicationSubmitAttemptsPerDay: 20,
       websiteBindingCodesPerDay: 5,
       issueReportsPerDay: 20,
       localSubscriptionFrequency: "daily",
@@ -419,7 +420,7 @@ function statusNextAction(bound) {
   if (!bound) {
     return "请主动用中文告诉用户：OnePilot Skill 已安装完成但还没有绑定账号。询问用户是否现在绑定；如果有 Gmail、Outlook 或其他邮箱工具，优先帮用户读取 OnePilot 邮箱验证码并通过 bind-email 完成绑定；否则请用户提供网站绑定码。";
   }
-  return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅或准备报名回答。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 5 次、每次最多 3 条，活动上下文每天 20 次，额度按账号共享。";
+  return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅或准备报名回答。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 5 次、每次最多 3 条，活动上下文每天 20 次，站内报名提交尝试每天 20 次，额度按账号共享。";
 }
 
 function statusUserFacingPrompt(bound) {
