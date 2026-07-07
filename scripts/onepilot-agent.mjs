@@ -48,6 +48,9 @@ Usage:
   onepilot-agent.mjs subscription run-now
   onepilot-agent.mjs subscription disable
   onepilot-agent.mjs application prepare --detail-token dt_xxx --questions TEXT
+  onepilot-agent.mjs application form --detail-token dt_xxx
+  onepilot-agent.mjs application submit --event-id EVENT_ID --form-version VERSION --answers-json '{"name":"..."}' | --answers-json-stdin
+  onepilot-agent.mjs application qr --url IMAGE_URL [--output /path/to/qr.png]
   onepilot-agent.mjs event-context --detail-token dt_xxx
   onepilot-agent.mjs feedback record --recommendation-id rec_xxx --action interested [--position 0] [--profile-json '{}'] [--profile-json-stdin] [--target-profile-json '{}'] [--target-profile-json-stdin]
   onepilot-agent.mjs issue report --description TEXT [--title TEXT] [--command TEXT] [--error-code TEXT] [--metadata-json '{}'] [--metadata-json-stdin]
@@ -395,7 +398,7 @@ function accountPolicySummary() {
     rebindingRevokesPreviousAgent: true,
     quotaScope: "account",
     quotas: {
-      recommendationRequestsPerDay: 3,
+      recommendationRequestsPerDay: 5,
       recommendationResultsPerRequest: 3,
       eventContextRequestsPerDay: 20,
       websiteBindingCodesPerDay: 5,
@@ -416,7 +419,7 @@ function statusNextAction(bound) {
   if (!bound) {
     return "请主动用中文告诉用户：OnePilot Skill 已安装完成但还没有绑定账号。询问用户是否现在绑定；如果有 Gmail、Outlook 或其他邮箱工具，优先帮用户读取 OnePilot 邮箱验证码并通过 bind-email 完成绑定；否则请用户提供网站绑定码。";
   }
-  return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅或准备报名回答。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 3 次、每次最多 3 条，活动上下文每天 20 次，额度按账号共享。";
+  return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅或准备报名回答。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 5 次、每次最多 3 条，活动上下文每天 20 次，额度按账号共享。";
 }
 
 function statusUserFacingPrompt(bound) {
@@ -813,8 +816,86 @@ async function eventContext(args) {
   return postJson(`${config.supabaseUrl}/functions/v1/agent-event-context`, { detailToken }, config.agentToken);
 }
 
+function imageExtension(contentType, url) {
+  const normalized = String(contentType || "").toLowerCase();
+  if (normalized.includes("png")) return ".png";
+  if (normalized.includes("jpeg") || normalized.includes("jpg")) return ".jpg";
+  if (normalized.includes("webp")) return ".webp";
+  try {
+    const pathname = new URL(url).pathname.toLowerCase();
+    const ext = path.extname(pathname);
+    if ([".png", ".jpg", ".jpeg", ".webp"].includes(ext)) return ext === ".jpeg" ? ".jpg" : ext;
+  } catch {
+    // Fall through to the safest common image extension.
+  }
+  return ".png";
+}
+
+async function downloadQrImage(args) {
+  const rawUrl = String(args.url || args.imageUrl || "").trim();
+  if (!rawUrl) throw new Error("missing_qr_url");
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(rawUrl);
+  } catch {
+    throw new Error("invalid_qr_url");
+  }
+  if (!["https:", "http:"].includes(parsedUrl.protocol)) throw new Error("invalid_qr_url");
+
+  const response = await fetch(parsedUrl);
+  if (!response.ok) throw new Error(`qr_download_failed_${response.status}`);
+  const contentLength = Number(response.headers.get("content-length") || "0");
+  if (Number.isFinite(contentLength) && contentLength > 5_000_000) throw new Error("qr_image_too_large");
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.byteLength > 5_000_000) throw new Error("qr_image_too_large");
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType && !contentType.toLowerCase().startsWith("image/")) throw new Error("qr_url_not_image");
+
+  const output = String(args.output || "").trim();
+  const outputPath = output
+    ? path.resolve(output)
+    : path.join(os.tmpdir(), `onepilot-event-group-qr-${Date.now()}${imageExtension(contentType, rawUrl)}`);
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, buffer);
+  return {
+    ok: true,
+    imagePath: outputPath,
+    contentType: contentType || "image/*",
+    bytes: buffer.byteLength,
+    instruction: "Send imagePath as an inline image or image attachment to the user. If the current channel cannot send local images, fall back to the original URL.",
+    fallbackUrl: rawUrl,
+  };
+}
+
 async function application(args) {
   const mode = args._[1] || "prepare";
+  const config = mode === "form" || mode === "submit" ? requireConfig() : null;
+
+  if (mode === "form") {
+    const detailToken = String(args["detail-token"] || "").trim();
+    if (!detailToken) throw new Error("missing_detail_token");
+    return postJson(`${config.supabaseUrl}/functions/v1/agent-application-form`, { detailToken }, config.agentToken);
+  }
+
+  if (mode === "submit") {
+    const eventId = String(args["event-id"] || args.eventId || "").trim();
+    const formVersion = String(args["form-version"] || args.formVersion || "").trim();
+    if (!eventId) throw new Error("missing_event_id");
+    if (!formVersion) throw new Error("missing_form_version");
+    const answers = parseOptionalJson(jsonOption(args, "answers-json", "answers-json-stdin"), "invalid_answers_json");
+    return postJson(`${config.supabaseUrl}/functions/v1/agent-application-submit`, {
+      eventId,
+      formVersion,
+      answers,
+      confirmed: true,
+    }, config.agentToken);
+  }
+
+  if (mode === "qr") {
+    return downloadQrImage(args);
+  }
+
   if (mode !== "prepare") throw new Error("unsupported_application_mode");
   const questions = String(args.questions || args.question || "").trim();
   if (!questions) throw new Error("missing_application_questions");

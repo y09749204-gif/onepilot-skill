@@ -145,7 +145,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" featured search -
 
 这些限额按 OnePilot 账号计算，同一账号下不同设备或 agent 共享：
 
-- 活动推荐：每天 3 次请求。
+- 活动推荐：每天 5 次请求。
 - 单次推荐结果：最多 3 条活动。
 - 活动上下文 / 报名协作上下文：每天 20 次。
 - 网站绑定码：每天最多生成 5 个。
@@ -161,7 +161,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" featured search -
 活动推荐次数用完时，agent 应提示：
 
 ```text
-今天的 OnePilot 活动推荐次数已经用完（每天 3 次）。你可以明天再让我推荐，或者直接打开 OnePilot 网站查看活动列表。
+今天的 OnePilot 活动推荐次数已经用完（每天 5 次）。你可以明天再让我推荐，或者直接打开 OnePilot 网站查看活动列表。
 ```
 
 ## 画像学习反馈
@@ -236,7 +236,35 @@ OnePilot 官网：https://onepilot.zeabur.app
 
 ## 报名协作
 
-用户提供报名问题文本，或者让 agent 从截图 OCR 出问题后，可以运行：
+如果活动支持 OnePilot 站内直报名，agent 可以先读取站内报名表字段：
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
+  --detail-token dt_xxx
+```
+
+agent 根据返回的字段和已保存记忆生成报名草稿。正式提交前必须把草稿展示给用户确认；用户确认后再提交：
+
+```bash
+printf '%s' '{"name":"张三","company":"OnePilot","jobTitle":"创始人","wechat":"wx_123"}' | \
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application submit \
+  --event-id EVENT_ID \
+  --form-version FORM_VERSION \
+  --answers-json-stdin
+```
+
+提交成功后，CLI 返回 `nextStep`。如果里面有 `groupQrImageUrl`，agent 应优先下载成本地图片并直接发给用户：
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application qr \
+  --url GROUP_QR_IMAGE_URL
+```
+
+命令会返回 `imagePath`。支持发图的渠道就把这个本地图片上传/内嵌发送，支持 Markdown 图片的渠道就渲染为图片；只有当前渠道不能发图或渲染图片时，才退回发送二维码链接。如果没有二维码，就使用 `nextStep.message` 告诉用户后续等待活动方通知。
+
+如果 `application form` 返回不支持站内直报名，agent 应直接使用这次返回的活动信息和记忆，结合用户提供的截图/OCR/问题文本生成草稿。不要再用同一个 `detailToken` 调 `application prepare`，因为它已经被 `application form` 消耗。
+
+外部报名表不由 OnePilot 自动提交。用户一开始就提供报名问题文本，或者让 agent 从截图 OCR 出问题后，可以运行：
 
 ```bash
 node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application prepare \
@@ -244,7 +272,7 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application prepa
   --questions "报名问题文本"
 ```
 
-CLI 会返回活动上下文、已保存记忆和报名问题。最终答案由本地 agent 生成。缺少真实个人信息时，agent 应该追问用户，不要编造。
+CLI 会返回活动上下文、已保存记忆和报名问题。最终答案由本地 agent 生成。缺少真实个人信息时，agent 应该追问用户，不要编造；外部表单答案由用户自行复制粘贴。
 
 用户确认报名完成后，如果 agent 有日程工具，应询问是否添加到日程；不能静默创建、修改或删除用户日程。
 

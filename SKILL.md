@@ -105,7 +105,7 @@ Treat these limits as the current OnePilot Skill contract. Read `status.accountP
 
 Fixed quotas:
 
-- Activity recommendations: 3 requests per account per day.
+- Activity recommendations: 5 requests per account per day.
 - Recommendation results: at most 3 activities per request.
 - Event context /报名协作 context: 20 requests per account per day.
 - Website binding codes: 5 generated codes per account per day.
@@ -263,7 +263,42 @@ Prefer the OnePilot internal event URL for ordinary user reading. Use event cont
 
 ## Application Help
 
-When the user wants报名协作, OCR or collect the application questions first, then call:
+When the user wants to register for a recommended event, first check whether it supports OnePilot-hosted internal registration. Use the recommendation `detailToken`:
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application form \
+  --detail-token dt_xxx
+```
+
+If `applicationForm.agentFillAvailable` is true, generate a draft from the returned `fields` and saved memory. Ask the user for missing personal facts; do not invent them. Before submitting, show the draft and require user confirmation in natural language. After the user confirms, submit structured answers:
+
+```bash
+printf '%s' '{"name":"...","company":"...","jobTitle":"...","wechat":"..."}' | \
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application submit \
+  --event-id EVENT_ID \
+  --form-version FORM_VERSION \
+  --answers-json-stdin
+```
+
+Never submit OnePilot-hosted registration silently. The user must explicitly confirm the final answers.
+After a successful `application submit`, read `nextStep`. If `nextStep.groupQrImageUrl` is present, send the QR code as an actual image whenever the current agent/channel supports images. Preferred order:
+
+1. Download it to a local image file:
+
+```bash
+node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application qr \
+  --url GROUP_QR_IMAGE_URL
+```
+
+2. Send the returned `imagePath` as an inline image or uploaded image attachment.
+3. If the channel cannot send local images but supports Markdown images, render `![活动群二维码](groupQrImageUrl)`.
+4. Only if image sending/rendering is unavailable, send the plain QR image link as a fallback.
+
+Tell the user to join the event group after sending the QR code. If no QR image is configured, use `nextStep.message` and say the organizer will follow up.
+
+If `applicationForm.agentFillAvailable` is false, do not call `application prepare` with the same `detailToken`; `application form` has already consumed it. Use the returned `event` and `memory` from `application form`, then OCR or collect the external form questions and draft answers locally.
+
+If the user starts from an external form screenshot or question text before you have called `application form`, you may use the older draft-only flow:
 
 ```bash
 node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application prepare \
@@ -271,14 +306,14 @@ node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" application prepa
   --questions "报名表问题文本"
 ```
 
-Use the returned event context and saved memory to draft answers locally. Ask the user for missing personal facts; do not invent them.
+Use the returned event context and saved memory to draft answers locally. External forms are not submitted by OnePilot; the user should paste the answers into the external form themselves.
 
 After the user confirms they registered or submitted, check whether a calendar tool is available. Ask before adding the event to the calendar; never silently create, edit, or delete calendar events.
 
 ## Error Handling
 
 - `missing_agent_token`, `invalid_agent_token`, `revoked_agent_token`, or `expired_agent_token`: run `status`, then re-bind with a fresh binding code.
-- `quota_exceeded`: tell the user "今天的 OnePilot 活动推荐次数已经用完（每天 3 次）。你可以明天再让我推荐，或者直接打开 OnePilot 网站查看活动列表。"
+- `quota_exceeded`: tell the user "今天的 OnePilot 活动推荐次数已经用完（每天 5 次）。你可以明天再让我推荐，或者直接打开 OnePilot 网站查看活动列表。"
 - `unknown_recommendation`: record feedback only for recommendations returned by the current bound agent.
 - `invalid_feedback_action`: use one of `opened`, `clicked`, `interested`, `saved`, `selected`, `shared`, `applied`, `registered`, `dismissed`, `not_interested`, `helpful`, or `not_helpful`.
 - `invalid_code` or `expired_code`: ask for a new binding code.
@@ -286,5 +321,10 @@ After the user confirms they registered or submitted, check whether a calendar t
 - `rate_limited`: tell the user OnePilot sent too many verification emails and to wait before retrying.
 - `subscription_disabled`: ask whether to re-enable the local subscription.
 - `missing_application_questions`: ask the user for the form questions or OCR the screenshot if provided.
+- `internal_application_unavailable`: explain that this event does not support OnePilot-hosted agent submission; ask for an external form screenshot or questions instead.
+- `confirmation_required`: show the draft answers and ask the user to confirm before submitting.
+- `form_version_changed`: fetch the form again, rebuild the draft if needed, and ask the user to confirm the updated version.
+- `validation_failed`: ask for the missing or invalid fields named in `fieldErrors`.
+- `duplicate_registration`: tell the user this event already has a submitted registration for the same account or contact.
 - `missing_issue_description`: summarize the observed bug before reporting it.
 - Missing local config: guide binding instead of calling recommendation endpoints.

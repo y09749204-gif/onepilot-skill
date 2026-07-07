@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.15-alpha
+
+- Added OnePilot-hosted internal event application flow for agents: fetch form fields, draft answers from memory, require user confirmation, and submit structured answers.
+- Added `application qr` to download event group QR codes as local image files so agents can send QR images directly when their channel supports images.
+- Updated activity recommendation quota documentation to 5 requests per account per day while keeping at most 3 events per request.
+
 ## v0.1.14-alpha
 
 - Removed the retired workspace resource from OnePilot featured recommendations, local featured data, and user-facing recommendation guidance.
