@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.18-alpha
+
+- Added the versioned activity matching request contract with structured taxonomy IDs, date ranges and hard `must`/`exclude` constraints.
+- Added an explicit trust boundary for event titles, summaries, evidence and source content.
+- Kept free-form query text as fallback context instead of expanding runtime alias lists.
+
 ## v0.1.17-alpha
 
 - Added direct OnePilot event URL/id lookup for `application form`, so agents can fetch a known event's hosted application form without spending recommendation quota.
