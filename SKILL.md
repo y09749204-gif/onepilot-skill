@@ -134,6 +134,19 @@ Updates come from the OnePilot website manifest and zip package. Updating replac
 
 ## Recommend Events
 
+Before translating a natural-language request into structured recommendation flags, read `references/activity-intent-few-shots.md`. Treat its examples as semantic boundary guidance, not keyword aliases.
+
+Build structured intent in this order: explicit city/date/price, explicit topics and formats, hard `must`/`exclude`, deterministic soft implications, then specific-topic precedence. Keep these rules:
+
+- `topic.opc` may softly add `audience.solo_founder`.
+- `format.hackathon` may softly add `value.hands_on`.
+- `format.coffee_chat` may softly add `value.peer_exchange`.
+- Implied tags affect soft matching only. Never place an implied tag in `--must`, and never write it back to activity data.
+- A specific AI topic suppresses `topic.ai_general`. Do not send both when Agent, AI coding, AI content, AI product, AI video, foundation models, or robotics clearly describes the request.
+- Negative language must attach to the correct dimension. For example, `不需要动手` excludes `value.hands_on`; `不要大会` excludes `format.conference`; `不想只听概念` can make `goal.hands_on` mandatory.
+- Do not infer a named format from vague social language: `局`, `小范围`, `认真聊`, or `找搭子` alone do not prove a salon, closed-door meeting, Coffeechat, or hackathon.
+- Distinguish learning from other people's product retrospectives (`value.case_study`) from requesting feedback on the user's own product (`goal.product_feedback`).
+
 Before recommending events, establish the user's available time. If the user has not already given a time range, first ask whether they have a local calendar/schedule tool available and whether they agree to let this agent read free/busy information. Examples include Feishu/Lark Calendar, Google Calendar, Apple Calendar, Outlook, or another local schedule tool.
 
 If the user agrees and the tool is available, read only the minimum availability needed for the recommendation task, then use the free windows as recommendation context. If no schedule tool is available, or the user does not agree, ask conversationally for usable time ranges such as this weekend, weekday evenings, or specific dates. Do not ask OnePilot cloud to connect directly to the user's calendar.
@@ -144,6 +157,7 @@ For event recommendations, call:
 node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" recommend \
   --query "本周末适合 AI agent 创业者的活动" \
   --topics "topic.ai_agent,topic.startup" \
+  --must "topic.ai_agent" \
   --audience "audience.solo_founder" \
   --goals "goal.validate_idea,goal.networking" \
   --districts "徐汇,静安" \

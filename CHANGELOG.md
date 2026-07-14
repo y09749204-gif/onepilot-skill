@@ -5,6 +5,7 @@
 - Added the versioned activity matching request contract with structured taxonomy IDs, date ranges and hard `must`/`exclude` constraints.
 - Added an explicit trust boundary for event titles, summaries, evidence and source content.
 - Kept free-form query text as fallback context instead of expanding runtime alias lists.
+- Added reviewed intent few-shots for negation, soft implications, specific AI topic precedence, and commonly confused activity semantics.
 
 ## v0.1.17-alpha
 
