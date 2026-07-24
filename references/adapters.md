@@ -13,13 +13,13 @@ Every compatible agent needs one of these capabilities:
 - install an extension/plugin that can call the CLI
 - connect to a future OnePilot MCP server
 
-Use the same helper command everywhere:
+Use the same helper command everywhere from the installed OnePilot Skill root:
 
 ```bash
-node "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs" status
+node ./scripts/onepilot-agent.mjs status
 ```
 
-For non-Codex installs, replace the path with the local OnePilot Skill path used by that platform.
+For platforms that launch commands from another working directory, the wrapper should first resolve the installed Skill root, then call `scripts/onepilot-agent.mjs` inside it. Do not hard-code Codex paths in shared instructions.
 
 For event recommendations, ask the user whether a local schedule/calendar tool is available and whether they agree to let the agent read availability. Only read free/busy information after agreement. If no tool is available or the user declines, collect availability conversationally.
 
@@ -27,6 +27,7 @@ For event recommendations, ask the user whether a local schedule/calendar tool i
 
 - Install into `$HOME/.codex/skills/onepilot`.
 - Codex can read `SKILL.md` directly.
+- Shared examples use `node ./scripts/onepilot-agent.mjs`; in Codex this means commands are run from `$HOME/.codex/skills/onepilot`.
 - Use `--agent-name Codex` when binding.
 - If Gmail connector is available, read the OnePilot verification code through Gmail and pass it to `bind-email verify --code-stdin`.
 
@@ -44,6 +45,7 @@ For event recommendations, ask the user whether a local schedule/calendar tool i
 - Keep OnePilot state in `~/.config/onepilot/agent.json`.
 - If ClawHub requires scan/publish metadata, add only packaging metadata; do not fork CLI behavior.
 - For first-stage distribution, publish the repository or release zip as a single OnePilot Skill package.
+- The canonical package root is the directory containing `SKILL.md`; `scripts/` and `references/` must stay next to it.
 
 ## Gemini CLI
 
@@ -70,5 +72,8 @@ For event recommendations, ask the user whether a local schedule/calendar tool i
 
 ## WorkBuddy
 
-- Treat WorkBuddy as experimental unless the target product confirms a skill/plugin format.
-- If it can execute local commands or use MCP, bind with `--agent-name WorkBuddy` and delegate to the shared CLI.
+- Treat WorkBuddy as experimental until the target WorkBuddy or SkillHub publishing flow confirms the required metadata.
+- Prefer the OpenClaw/SkillHub-compatible package shape: a single folder containing `SKILL.md`, `scripts/`, `references/`, `README.md`, `LICENSE`, and `SECURITY.md`.
+- If WorkBuddy installs Skills into `.codebuddy/skills/` or another managed directory, do not change shared commands; run them from the installed OnePilot Skill root.
+- If it can execute local commands, bind with `--agent-name WorkBuddy` and delegate to the shared CLI.
+- If it exposes MCP but blocks local command execution, add a thin OnePilot MCP server later; do not rewrite recommendation, memory, subscription, feedback, or application behavior into WorkBuddy-specific code.
