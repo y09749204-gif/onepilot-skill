@@ -55,8 +55,8 @@ Usage:
   onepilot-agent.mjs organizer event revise --event-id EVENT_ID --event-json '{"title":"..."}' | --event-json-stdin --confirmed
   onepilot-agent.mjs organizer profile view
   onepilot-agent.mjs organizer profile submit --profile-json '{"name":"..."}' | --profile-json-stdin --confirmed
-  onepilot-agent.mjs organizer registrations list [--event-id EVENT_ID]
-  onepilot-agent.mjs organizer registrations export [--event-id EVENT_ID]
+  onepilot-agent.mjs organizer registrations list [--event-id EVENT_ID] --confirmed
+  onepilot-agent.mjs organizer registrations export [--event-id EVENT_ID] --confirmed
   onepilot-agent.mjs organizer registration-template view
   onepilot-agent.mjs organizer registration-template save --template-json '{"registrationQuestions":[]}' | --template-json-stdin --confirmed
   onepilot-agent.mjs event-context --detail-token dt_xxx
@@ -957,14 +957,16 @@ async function organizer(args) {
 
   if (resource === "registrations") {
     if (!mode || mode === "list") {
+      requireConfirmed(args);
       return postOrganizer({ action: "registrations-list", eventExternalId: String(args["event-id"] || args.eventId || "").trim() });
     }
     if (mode === "export") {
+      requireConfirmed(args);
       const result = await postOrganizer({ action: "registrations-list", eventExternalId: String(args["event-id"] || args.eventId || "").trim() });
       return {
         ...result,
         csv: registrationsToCsv(Array.isArray(result.registrations) ? result.registrations : []),
-        instruction: "Return csv to the organizer only after confirming they have Owner permission in the response.",
+        instruction: "Return csv only when the response confirms Owner permission and the user explicitly requested this export.",
       };
     }
     throw new Error("unsupported_organizer_registrations_mode");

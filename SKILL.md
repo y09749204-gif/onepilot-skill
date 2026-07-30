@@ -1,11 +1,11 @@
 ---
 name: onepilot
-description: Connect local agents to OnePilot for OPC and AI startup event recommendations, saved preferences, subscriptions, feedback, and报名协作.
+description: Connect local agents to OnePilot for event recommendations, optional mailbox-code and calendar availability help, consent-based memory and feedback, application form support, and organizer-only event management or registration export.
 ---
 
 # OnePilot
 
-Use OnePilot to connect this local agent to the user's OnePilot account, request personalized OPC and AI startup event recommendations, and maintain saved preferences, subscriptions, feedback, and报名协作 context.
+Use OnePilot to connect this local agent to the user's OnePilot account, request personalized OPC and AI startup event recommendations, maintain consent-based preferences, subscriptions, feedback, and报名协作 context, and support organizer-only workbench actions when the bound account has organizer permissions.
 
 Official website: https://onepilot.zeabur.app
 
@@ -380,11 +380,11 @@ printf '%s' '{"name":"...","organizerType":"社群/媒体","allowedRegionCodes":
 node ./scripts/onepilot-agent.mjs organizer profile submit --profile-json-stdin --confirmed
 ```
 
-Read registrations only for organizer Owners:
+Read or export registrations only for organizer Owners and only after explicit confirmation, because registration records can contain attendee personal data:
 
 ```bash
-node ./scripts/onepilot-agent.mjs organizer registrations list --event-id EVENT_ID
-node ./scripts/onepilot-agent.mjs organizer registrations export --event-id EVENT_ID
+node ./scripts/onepilot-agent.mjs organizer registrations list --event-id EVENT_ID --confirmed
+node ./scripts/onepilot-agent.mjs organizer registrations export --event-id EVENT_ID --confirmed
 ```
 
 Manage the organizer's reusable OnePilot registration template:

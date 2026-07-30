@@ -1,7 +1,7 @@
 {
   "name": "onepilot-skill",
-  "version": "0.1.22",
-  "description": "OnePilot CLI for local agents, including OPC and AI startup event recommendations, saved memory, subscriptions, feedback, issue reporting, and application help. Official website: https://onepilot.zeabur.app",
+  "version": "0.1.23",
+  "description": "OnePilot CLI for local agents: event recommendations, optional mailbox-code and calendar availability help, consent-based memory and feedback, application form support, and organizer-only event management or registration export. Official website: https://onepilot.zeabur.app",
   "author": {
     "name": "OnePilot"
   },
