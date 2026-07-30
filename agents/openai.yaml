@@ -1,4 +1,4 @@
 interface:
-  display_name: "OnePilot Skill"
-  short_description: "Bind OnePilot, recommend OPC and AI startup events, save memory, report issues, record feedback, and prepare applications. Website: https://onepilot.zeabur.app"
+  display_name: "OnePilot CLI"
+  short_description: "Connect OnePilot, recommend events, and manage preferences."
   default_prompt: "Use $onepilot to bind this agent, recommend matching OPC and AI startup events, learn from my reactions, and help maintain my preferences. OnePilot website: https://onepilot.zeabur.app"

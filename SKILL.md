@@ -13,13 +13,13 @@ Core behavior lives in this file and applies to every local agent. For platform-
 
 ## Quick Start
 
-Run the bundled helper from the OnePilot Skill root directory:
+Run the bundled helper from the OnePilot CLI package root directory:
 
 ```bash
 node ./scripts/onepilot-agent.mjs status
 ```
 
-Platform adapters may install this folder in different locations, such as Codex, WorkBuddy, OpenClaw, Claude Code, or Qwen Code. Keep commands relative to this Skill root unless a platform wrapper explicitly resolves an absolute path.
+Platform adapters may install this folder in different locations, such as Codex, WorkBuddy, OpenClaw, Claude Code, or Qwen Code. Keep commands relative to this CLI package root unless a platform wrapper explicitly resolves an absolute path.
 
 Before the first OnePilot action in a session, check for updates:
 
@@ -33,7 +33,7 @@ If it reports `updateAvailable: true`, automatically run:
 node ./scripts/onepilot-agent.mjs update
 ```
 
-After a successful update, continue the user's original binding, recommendation, subscription, memory, or报名协作 request. If updating fails, tell the user that OnePilot Skill update failed and continue with the local version when the requested action can still run.
+After a successful update, continue the user's original binding, recommendation, subscription, memory, or报名协作 request. If updating fails, tell the user that the OnePilot CLI update failed and continue with the local version when the requested action can still run.
 
 If it reports `bound: true`, use the helper for OnePilot calls.
 
@@ -66,14 +66,14 @@ This saves the agent token to `~/.config/onepilot/agent.json` with `0600` permis
 
 After installation or whenever `status` is run, read `nextAction` and `userFacingPrompt`. Do not stop at showing JSON. Act on it.
 
-If `bound: false`, proactively tell the user in Chinese that OnePilot Skill is installed but not bound, then ask whether to bind now. Prefer mailbox-tool binding when an email connector is available; otherwise ask for a website binding code.
+If `bound: false`, proactively tell the user in Chinese that OnePilot CLI is installed but not bound, then ask whether to bind now. Prefer mailbox-tool binding when an email connector is available; otherwise ask for a website binding code.
 
 If `bound: true`, proactively tell the user what OnePilot can do next: recommend OPC and AI startup events, remember preferences and application materials, set local subscriptions, and prepare报名 answers.
-If the bound account is an organizer member, the Skill can also help manage the OnePilot organizer workbench through `organizer` commands. Organizer actions use the same account binding and never bypass OnePilot review.
+If the bound account is an organizer member, OnePilot CLI can also help manage the OnePilot organizer workbench through `organizer` commands. Organizer actions use the same account binding and never bypass OnePilot review.
 
 ## Featured Resources
 
-Featured resources are optional local curated items, separate from activity recommendations. Do not recommend removed non-event resources from this Skill.
+Featured resources are optional local curated items, separate from activity recommendations. Do not recommend removed non-event resources from this CLI package.
 
 Use featured resources only when the user asks for a resource category that still exists in `references/featured-recommendations.json`, such as workspace, desks, offices, landing space,入驻, OPC community,共创社区, or startup community resources.
 
@@ -99,7 +99,7 @@ Recommendation quota is account-based, not agent-based. All devices and agents b
 
 ## Current Limits
 
-Treat these limits as the current OnePilot Skill contract. Read `status.accountPolicy` when available because newer versions may expose updated values.
+Treat these limits as the current OnePilot CLI contract. Read `status.accountPolicy` when available because newer versions may expose updated values.
 
 Fixed quotas:
 
@@ -198,7 +198,7 @@ If the user says they applied, registered, or wants to register, and a calendar 
 
 ## Issue Reporting
 
-If OnePilot Skill behaves incorrectly during use, report the issue to OnePilot cloud after continuing the user's task when possible. Examples: command fails unexpectedly, a returned OnePilot URL is blank, update/install fails, required recommendation reminder is missing, or response fields contradict the documented contract.
+If OnePilot CLI behaves incorrectly during use, report the issue to OnePilot cloud after continuing the user's task when possible. Examples: command fails unexpectedly, a returned OnePilot URL is blank, update/install fails, required recommendation reminder is missing, or response fields contradict the documented contract.
 
 Use concise, non-sensitive context only. Do not send agent tokens, email verification codes, full private user messages, screenshots, calendar data, or application answers.
 

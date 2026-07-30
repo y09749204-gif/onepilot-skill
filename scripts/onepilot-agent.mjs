@@ -265,7 +265,7 @@ function validateManifest(manifest) {
   }
   if (!/^[a-f0-9]{64}$/.test(sha256)) throw new Error("invalid_manifest_sha256");
   return {
-    name: String(manifest?.name || "OnePilot Skill").trim(),
+    name: String(manifest?.name || "OnePilot CLI").trim(),
     latestVersion,
     zipUrl,
     sha256,
@@ -431,14 +431,14 @@ function accountPolicySummary() {
 
 function statusNextAction(bound) {
   if (!bound) {
-    return "请主动用中文告诉用户：OnePilot Skill 已安装完成但还没有绑定账号。询问用户是否现在绑定；如果有 Gmail、Outlook 或其他邮箱工具，优先帮用户读取 OnePilot 邮箱验证码并通过 bind-email 完成绑定；否则请用户提供网站绑定码。";
+    return "请主动用中文告诉用户：OnePilot CLI 已安装完成但还没有绑定账号。询问用户是否现在绑定；如果有 Gmail、Outlook 或其他邮箱工具，优先帮用户读取 OnePilot 邮箱验证码并通过 bind-email 完成绑定；否则请用户提供网站绑定码。";
   }
   return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅、准备报名回答；如果该账号是主办方成员，也可以通过 organizer 命令管理主办方工作台。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 5 次、每次最多 3 条，活动上下文每天 20 次，站内报名提交尝试每天 20 次，额度按账号共享。";
 }
 
 function statusUserFacingPrompt(bound) {
   if (!bound) {
-    return "OnePilot Skill 已安装完成，但还没有绑定账号。我可以现在帮你绑定：如果你授权了邮箱工具，我可以读取 OnePilot 验证码完成绑定；也可以使用 OnePilot 网站生成的绑定码。";
+    return "OnePilot CLI 已安装完成，但还没有绑定账号。我可以现在帮你绑定：如果你授权了邮箱工具，我可以读取 OnePilot 验证码完成绑定；也可以使用 OnePilot 网站生成的绑定码。";
   }
   return "OnePilot 已绑定。我可以帮你推荐 OPC 和 AI 创业活动、维护偏好和报名资料、设置本地订阅，并在你要报名时准备回答草稿；如果你是主办方成员，也可以帮你整理并提交活动、管理资料修订、查看报名情况。";
 }
@@ -679,7 +679,7 @@ async function issue(args) {
   const description = String(args.description || args.message || "").trim();
   if (!description) throw new Error("missing_issue_description");
   return postJson(`${config.supabaseUrl}/functions/v1/agent-issue-report`, {
-    title: String(args.title || description.split(/\n+/)[0] || "OnePilot Skill issue").trim().slice(0, 120),
+    title: String(args.title || description.split(/\n+/)[0] || "OnePilot CLI issue").trim().slice(0, 120),
     description,
     severity: String(args.severity || "bug").trim(),
     source: "agent",

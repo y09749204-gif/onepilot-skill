@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-OnePilot Skill is currently in alpha. Security fixes are published to the latest release only.
+OnePilot CLI is currently in alpha. Security fixes are published to the latest release only.
 
 ## Reporting A Vulnerability
 
@@ -22,4 +22,4 @@ Do not commit, paste, upload, or share this file. Updating the skill does not mo
 
 ## Data Handling
 
-OnePilot Skill can send user preferences, availability, application profile fields, answer examples, and event feedback to OnePilot cloud after normal user-agent interaction. The skill must not silently create, edit, or delete calendar events; calendar writes require explicit user confirmation.
+OnePilot CLI can send user preferences, availability, application profile fields, answer examples, and event feedback to OnePilot cloud after normal user-agent interaction. The CLI must not silently create, edit, or delete calendar events; calendar writes require explicit user confirmation.

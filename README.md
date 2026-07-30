@@ -1,6 +1,6 @@
-# OnePilot Skill
+# OnePilot CLI
 
-OnePilot Skill 是给本地 agent 使用的 **Skill + CLI 工具包**。
+OnePilot CLI 是给本地 agent 使用的命令行工具，通过 Skill、Extension 等适配形态接入不同平台。
 
 它可以让 Codex、Claude Code、OpenClaw、Gemini CLI、Qwen Code、WorkBuddy 等本地 agent 连接 OnePilot；其他支持本地命令、Skill、Extension 或 MCP 的 agent 也可以接入。
 
@@ -21,8 +21,8 @@ Skill 说明 + onepilot-agent.mjs CLI + OnePilot 服务端 API
 - 推荐结果只返回 OnePilot 站内活动 URL，不直接暴露外部报名链接。
 - 保存、查看和删除 agent 维护的长期记忆，例如偏好、可用时间、报名资料、常用回答素材。
 - 记录用户对推荐活动的反应，把“什么画像喜欢什么活动”的数据沉淀到 OnePilot 云端。
-- 当用户找活动、偏好保存、订阅提醒或报名协作时，使用 OnePilot Skill 的本地命令完成。
-- 反馈 Skill 使用中的 bug；agent 发现明显异常时也可以把脱敏问题报告给 OnePilot 云端。
+- 当用户找活动、偏好保存、订阅提醒或报名协作时，使用 OnePilot CLI 的本地命令完成。
+- 反馈 OnePilot CLI 使用中的 bug；agent 发现明显异常时也可以把脱敏问题报告给 OnePilot 云端。
 - 支持本地订阅：用 `subscription due` 判断是否到期，用 `subscription run-now` 获取推荐。
 - 支持报名协作：结合活动上下文、用户记忆和报名问题，帮助 agent 生成报名答案草稿。
 
@@ -36,9 +36,9 @@ node ./scripts/onepilot-agent.mjs check-update
 node ./scripts/onepilot-agent.mjs update
 ```
 
-以上命令默认在 OnePilot Skill 根目录执行，也就是包含 `SKILL.md`、`scripts/` 和 `references/` 的目录。不同平台只需要把这个目录安装到自己的 Skill 位置，不要改核心脚本。
+以上命令默认在 OnePilot CLI 包根目录执行，也就是包含 `SKILL.md`、`scripts/` 和 `references/` 的目录。不同平台只需要把这个目录安装到自己的 Skill 或 Extension 位置，不要改核心脚本。
 
-更新只替换 Skill 文件，不会删除本地绑定配置：
+更新只替换 OnePilot CLI 包文件，不会删除本地绑定配置：
 
 ```text
 ~/.config/onepilot/agent.json
@@ -72,7 +72,7 @@ node ./scripts/onepilot-agent.mjs status
 - OnePilot 官网下载页：[https://onepilot.zeabur.app](https://onepilot.zeabur.app)，给普通用户复制安装口令。
 - GitHub Release：给海外开发者和可访问 GitHub 的 agent 下载 zip。
 - Qwen Code Extension：使用 `qwen-extension.json` 做薄适配，核心仍调用同一个 CLI。
-- ClawHub：发布同一份 Skill 包，不复制业务逻辑。
+- ClawHub：以 Skill 形态发布同一份 OnePilot CLI 包，不复制业务逻辑。
 - WorkBuddy / SkillHub：按 OpenClaw/SkillHub 兼容结构做实验性安装验证；正式上架前确认目标市场要求的元数据和审核入口。
 
 这些文件用于发布准备：
@@ -94,7 +94,7 @@ package.json
 
 ## WorkBuddy 兼容验证
 
-WorkBuddy 适配应保持薄包装：把同一份 OnePilot Skill 目录安装到 WorkBuddy 或 SkillHub 要求的位置，然后从该目录调用 `node ./scripts/onepilot-agent.mjs`。绑定时使用：
+WorkBuddy 适配应保持薄包装：把同一份 OnePilot CLI 包安装到 WorkBuddy 或 SkillHub 要求的位置，然后从该目录调用 `node ./scripts/onepilot-agent.mjs`。绑定时使用：
 
 ```bash
 node ./scripts/onepilot-agent.mjs bind --code OPB-XXXXXXXXXXXX --agent-name WorkBuddy
@@ -155,7 +155,7 @@ agent 应该先说明最推荐的一条，再列出其他选项，并附上 OneP
 node ./scripts/onepilot-agent.mjs featured search --query "我想找工位或 OPC 社区" --limit 3
 ```
 
-如果命中结果，先推荐 OnePilot 精选项，再补充其他建议。不要从本 Skill 推荐已移除的非活动资源。
+如果命中结果，先推荐 OnePilot 精选项，再补充其他建议。不要从 OnePilot CLI 包推荐已移除的非活动资源。
 
 ## 当前限额
 
@@ -200,7 +200,7 @@ node ./scripts/onepilot-agent.mjs feedback record \
 
 ## 问题反馈
 
-如果 Skill 使用中出现 bug，用户可以在 OnePilot 网站的“Agent 与账号”面板提交反馈。agent 自己发现异常时，也可以上报脱敏问题：
+如果 OnePilot CLI 使用中出现 bug，用户可以在 OnePilot 网站的“Agent 与账号”面板提交反馈。agent 自己发现异常时，也可以上报脱敏问题：
 
 ```bash
 node ./scripts/onepilot-agent.mjs issue report \
@@ -309,7 +309,7 @@ CLI 会返回活动上下文、已保存记忆和报名问题。最终答案由�
 
 ## 适配说明
 
-OnePilot 只维护一个核心 Skill 和一个通用 CLI，不为每个平台复制业务逻辑。
+OnePilot 只维护一套核心 CLI，并通过 Skill、Extension 等薄适配接入不同平台，不复制业务逻辑。
 
 平台差异只放在 `references/adapters.md`，包括 Codex、Claude Code、OpenClaw、Gemini CLI、Qwen Code、opencode、Trae、WorkBuddy 等 agent 的安装方式、命令权限、邮箱工具和本地调度差异。
 
