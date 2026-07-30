@@ -2,14 +2,11 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import crypto from "node:crypto";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_SUPABASE_URL = "https://kgpktqongfxugynwadaa.supabase.co";
 const DEFAULT_SITE_URL = "https://onepilot.zeabur.app";
 const DEFAULT_MANIFEST_URL = `${DEFAULT_SITE_URL}/downloads/onepilot-skill-manifest.json`;
-const TRUSTED_PACKAGE_HOSTS = new Set(["onepilot.zeabur.app", "github.com", "objects.githubusercontent.com"]);
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SKILL_DIR = path.dirname(path.dirname(SCRIPT_PATH));
 const VERSION_PATH = path.join(SKILL_DIR, "VERSION");
@@ -32,7 +29,6 @@ function usage() {
 Usage:
   onepilot-agent.mjs version
   onepilot-agent.mjs check-update [--manifest-url URL]
-  onepilot-agent.mjs update [--manifest-url URL]
   onepilot-agent.mjs status
   onepilot-agent.mjs bind --code OPB-XXXXXXXXXXXX [--agent-name Codex]
   onepilot-agent.mjs bind-email start --email USER@example.com [--agent-name Codex]
@@ -255,20 +251,10 @@ function manifestUrl(args) {
 
 function validateManifest(manifest) {
   const latestVersion = String(manifest?.latestVersion || "").trim();
-  const zipUrl = String(manifest?.zipUrl || "").trim();
-  const sha256 = String(manifest?.sha256 || "").trim().toLowerCase();
   if (!latestVersion) throw new Error("invalid_manifest_version");
-  if (!/^https?:\/\//i.test(zipUrl)) throw new Error("invalid_manifest_zip_url");
-  const parsedZipUrl = new URL(zipUrl);
-  if (parsedZipUrl.protocol !== "https:" || !TRUSTED_PACKAGE_HOSTS.has(parsedZipUrl.hostname)) {
-    throw new Error("untrusted_manifest_zip_url");
-  }
-  if (!/^[a-f0-9]{64}$/.test(sha256)) throw new Error("invalid_manifest_sha256");
   return {
     name: String(manifest?.name || "OnePilot CLI").trim(),
     latestVersion,
-    zipUrl,
-    sha256,
     releasedAt: String(manifest?.releasedAt || "").trim(),
     changelogUrl: String(manifest?.changelogUrl || "").trim(),
   };
@@ -285,10 +271,11 @@ async function checkUpdate(args = {}) {
     latest: manifest.latestVersion,
     updateAvailable,
     manifestUrl: url,
-    zipUrl: manifest.zipUrl,
-    sha256: manifest.sha256,
     releasedAt: manifest.releasedAt,
     changelogUrl: manifest.changelogUrl,
+    updateInstruction: updateAvailable
+      ? "Install the latest OnePilot CLI through your agent platform or the official OnePilot installer."
+      : "",
   };
 }
 
@@ -304,80 +291,6 @@ async function safeVersionCheck(args = {}) {
       manifestUrl: manifestUrl(args),
       error: error instanceof Error ? error.message : String(error),
     };
-  }
-}
-
-async function downloadFile(url, destination) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`download_failed:${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  fs.writeFileSync(destination, bytes);
-  return bytes;
-}
-
-function sha256File(filePath) {
-  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
-}
-
-function findSkillSource(root) {
-  const stack = [root];
-  while (stack.length) {
-    const current = stack.pop();
-    const skillPath = path.join(current, "SKILL.md");
-    if (fs.existsSync(skillPath)) return current;
-    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
-      if (!entry.isDirectory() || entry.name === "__MACOSX") continue;
-      stack.push(path.join(current, entry.name));
-    }
-  }
-  throw new Error("downloaded_archive_missing_skill");
-}
-
-function replaceSkillDirectory(sourceDir) {
-  const parent = path.dirname(SKILL_DIR);
-  const backupDir = path.join(parent, `.onepilot-backup-${Date.now()}`);
-  const nextDir = path.join(parent, `.onepilot-next-${Date.now()}`);
-  fs.cpSync(sourceDir, nextDir, { recursive: true });
-  if (!fs.existsSync(path.join(nextDir, "SKILL.md"))) throw new Error("downloaded_archive_missing_skill");
-  fs.renameSync(SKILL_DIR, backupDir);
-  try {
-    fs.renameSync(nextDir, SKILL_DIR);
-    fs.rmSync(backupDir, { recursive: true, force: true });
-  } catch (error) {
-    if (fs.existsSync(SKILL_DIR)) fs.rmSync(SKILL_DIR, { recursive: true, force: true });
-    fs.renameSync(backupDir, SKILL_DIR);
-    throw error;
-  }
-}
-
-async function updateSkill(args = {}) {
-  const check = await checkUpdate(args);
-  if (!check.updateAvailable) {
-    return { ok: true, updated: false, current: check.current, latest: check.latest };
-  }
-
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "onepilot-skill-update-"));
-  try {
-    const zipPath = path.join(tempDir, "onepilot-skill.zip");
-    await downloadFile(check.zipUrl, zipPath);
-    const actualSha = sha256File(zipPath);
-    if (actualSha !== check.sha256) {
-      throw new Error("sha256_mismatch");
-    }
-    const extractDir = path.join(tempDir, "extract");
-    fs.mkdirSync(extractDir, { recursive: true });
-    execFileSync("unzip", ["-q", zipPath, "-d", extractDir], { stdio: "ignore" });
-    replaceSkillDirectory(findSkillSource(extractDir));
-    const nextVersion = readLocalVersion();
-    return {
-      ok: true,
-      updated: true,
-      from: check.current,
-      to: nextVersion,
-      latest: check.latest,
-    };
-  } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true });
   }
 }
 
@@ -431,14 +344,14 @@ function accountPolicySummary() {
 
 function statusNextAction(bound) {
   if (!bound) {
-    return "请主动用中文告诉用户：OnePilot CLI 已安装完成但还没有绑定账号。询问用户是否现在绑定；如果有 Gmail、Outlook 或其他邮箱工具，优先帮用户读取 OnePilot 邮箱验证码并通过 bind-email 完成绑定；否则请用户提供网站绑定码。";
+    return "Tell the user in their current language that OnePilot CLI is installed but not bound. Ask whether they want to bind now with a website binding code or a manually pasted email verification code. Use a mailbox connector only when the user explicitly requests that method.";
   }
-  return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅、准备报名回答；如果该账号是主办方成员，也可以通过 organizer 命令管理主办方工作台。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 5 次、每次最多 3 条，活动上下文每天 20 次，站内报名提交尝试每天 20 次，额度按账号共享。";
+  return "Tell the user in their current language that OnePilot is bound and can recommend OPC and AI startup events, save preferences after consent, set local subscriptions, and prepare application answers. If the account is an organizer member, organizer commands can manage the OnePilot organizer workbench. Remind them that one account has one active agent token at a time and quotas are shared by account.";
 }
 
 function statusUserFacingPrompt(bound) {
   if (!bound) {
-    return "OnePilot CLI 已安装完成，但还没有绑定账号。我可以现在帮你绑定：如果你授权了邮箱工具，我可以读取 OnePilot 验证码完成绑定；也可以使用 OnePilot 网站生成的绑定码。";
+    return "OnePilot CLI is installed but not bound yet. You can bind with a website binding code or paste an email verification code; mailbox-tool binding is optional.";
   }
   return "OnePilot 已绑定。我可以帮你推荐 OPC 和 AI 创业活动、维护偏好和报名资料、设置本地订阅，并在你要报名时准备回答草稿；如果你是主办方成员，也可以帮你整理并提交活动、管理资料修订、查看报名情况。";
 }
@@ -1088,7 +1001,11 @@ async function main() {
   } else if (command === "check-update") {
     result = await checkUpdate(args);
   } else if (command === "update") {
-    result = await updateSkill(args);
+    result = {
+      ok: false,
+      error: "platform_managed_updates",
+      instruction: "Install the latest OnePilot CLI through your agent platform or the official OnePilot installer.",
+    };
   } else if (command === "status") {
     const summary = safeConfigSummary(readConfig());
     summary.version = await safeVersionCheck(args);

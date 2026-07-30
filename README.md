@@ -28,17 +28,16 @@ Skill 说明 + onepilot-agent.mjs CLI + OnePilot 服务端 API
 
 ## 通用使用方式
 
-当前版本以仓库根目录的 `VERSION` 文件为准。agent 使用 OnePilot 前应先检查更新；如果有新版，第一版默认自动更新：
+当前版本以仓库根目录的 `VERSION` 文件为准。agent 使用 OnePilot 前可以检查是否有新版；升级由 ClawHub、Codex skill manager、其他 agent 平台或 OnePilot 官方安装器完成：
 
 ```bash
 node ./scripts/onepilot-agent.mjs version
 node ./scripts/onepilot-agent.mjs check-update
-node ./scripts/onepilot-agent.mjs update
 ```
 
 以上命令默认在 OnePilot CLI 包根目录执行，也就是包含 `SKILL.md`、`scripts/` 和 `references/` 的目录。不同平台只需要把这个目录安装到自己的 Skill 或 Extension 位置，不要改核心脚本。
 
-更新只替换 OnePilot CLI 包文件，不会删除本地绑定配置：
+平台托管升级不需要删除本地绑定配置：
 
 ```text
 ~/.config/onepilot/agent.json
@@ -104,14 +103,14 @@ node ./scripts/onepilot-agent.mjs bind --code OPB-XXXXXXXXXXXX --agent-name Work
 
 ## 邮箱验证码绑定
 
-让 agent 使用你的邮箱绑定 OnePilot。如果 agent 已经有 Gmail、Outlook 或其他邮箱 connector，它应该直接读取最新 OnePilot 验证码邮件，然后把邮件内容交给 CLI。
+可以用邮箱验证码绑定 OnePilot。默认做法是用户把验证码贴给 agent；如果用户明确要求使用 Gmail、Outlook 或其他邮箱 connector，agent 只读取完成绑定所需的最新 OnePilot 验证码邮件，然后把验证码交给 CLI。
 
 ```bash
 node ./scripts/onepilot-agent.mjs bind-email start --email user@example.com --agent-name AgentName
 mail-tool-read-latest-onepilot-code | node ./scripts/onepilot-agent.mjs bind-email verify --email user@example.com --code-stdin --agent-name AgentName
 ```
 
-如果当前 agent 没有邮箱工具，可以先安装或授权对应邮箱 connector。最后兜底才是让用户把验证码发给 agent：
+如果当前 agent 没有邮箱工具，直接让用户粘贴验证码即可：
 
 ```bash
 node ./scripts/onepilot-agent.mjs bind-email verify --email user@example.com --code 123456 --agent-name AgentName
@@ -200,7 +199,7 @@ node ./scripts/onepilot-agent.mjs feedback record \
 
 ## 问题反馈
 
-如果 OnePilot CLI 使用中出现 bug，用户可以在 OnePilot 网站的“Agent 与账号”面板提交反馈。agent 自己发现异常时，也可以上报脱敏问题：
+如果 OnePilot CLI 使用中出现 bug，用户可以在 OnePilot 网站的“Agent 与账号”面板提交反馈。agent 自己发现异常时，应先询问用户是否同意上报脱敏问题：
 
 ```bash
 node ./scripts/onepilot-agent.mjs issue report \

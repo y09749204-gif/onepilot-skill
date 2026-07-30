@@ -1,6 +1,6 @@
 {
   "name": "onepilot-skill",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "OnePilot CLI for local agents, including issue reporting. Distributed as a cross-agent skill package. Official website: https://onepilot.zeabur.app",
   "type": "module",
   "bin": {

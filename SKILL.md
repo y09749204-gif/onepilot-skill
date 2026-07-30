@@ -21,19 +21,13 @@ node ./scripts/onepilot-agent.mjs status
 
 Platform adapters may install this folder in different locations, such as Codex, WorkBuddy, OpenClaw, Claude Code, or Qwen Code. Keep commands relative to this CLI package root unless a platform wrapper explicitly resolves an absolute path.
 
-Before the first OnePilot action in a session, check for updates:
+Before the first OnePilot action in a session, check whether a newer version exists:
 
 ```bash
 node ./scripts/onepilot-agent.mjs check-update
 ```
 
-If it reports `updateAvailable: true`, automatically run:
-
-```bash
-node ./scripts/onepilot-agent.mjs update
-```
-
-After a successful update, continue the user's original binding, recommendation, subscription, memory, or报名协作 request. If updating fails, tell the user that the OnePilot CLI update failed and continue with the local version when the requested action can still run.
+If it reports `updateAvailable: true`, tell the user a newer OnePilot CLI version is available and that updates should be installed through their agent platform, ClawHub, Codex skill manager, or the official OnePilot installer. Do not replace local files from inside this CLI package.
 
 If it reports `bound: true`, use the helper for OnePilot calls.
 
@@ -52,13 +46,13 @@ node ./scripts/onepilot-agent.mjs bind-email start --email user@example.com --ag
 node ./scripts/onepilot-agent.mjs bind-email verify --email user@example.com --code 123456 --agent-name AgentName
 ```
 
-If an email connector/tool is available, use it to read the latest OnePilot verification email, extract the 6-8 digit code, and verify through CLI. Explain that the same mailbox/tool authorization can also support later local email subscriptions or reminders. Do not open a browser just to read or paste the code. You can pipe connector output into:
+Manual code entry is always acceptable. If the user explicitly asks the agent to use an email connector/tool, read only the latest OnePilot verification email needed for binding, extract the 6-8 digit code, and verify through CLI. Do not browse unrelated mailbox contents. You can pipe connector output into:
 
 ```bash
 mail-tool-read-latest-onepilot-code | node ./scripts/onepilot-agent.mjs bind-email verify --email user@example.com --code-stdin --agent-name AgentName
 ```
 
-If no connector for the user's mailbox is available, ask the user to install or authorize the matching email connector, and mention it will be useful for both binding verification and future email-based subscriptions/reminders. Only fall back to asking the user to paste the code when connector access is unavailable.
+If no connector for the user's mailbox is available, ask the user to paste the website or email verification code. Mention mailbox connectors only when the user asks for connector-based binding or email delivery.
 
 This saves the agent token to `~/.config/onepilot/agent.json` with `0600` permissions. Never print, paste, commit, or expose the token.
 
@@ -66,7 +60,7 @@ This saves the agent token to `~/.config/onepilot/agent.json` with `0600` permis
 
 After installation or whenever `status` is run, read `nextAction` and `userFacingPrompt`. Do not stop at showing JSON. Act on it.
 
-If `bound: false`, proactively tell the user in Chinese that OnePilot CLI is installed but not bound, then ask whether to bind now. Prefer mailbox-tool binding when an email connector is available; otherwise ask for a website binding code.
+If `bound: false`, tell the user in their current language that OnePilot CLI is installed but not bound, then ask whether to bind now. Prefer a website binding code or manually pasted email code unless the user explicitly asks to use a mailbox tool.
 
 If `bound: true`, proactively tell the user what OnePilot can do next: recommend OPC and AI startup events, remember preferences and application materials, set local subscriptions, and prepare报名 answers.
 If the bound account is an organizer member, OnePilot CLI can also help manage the OnePilot organizer workbench through `organizer` commands. Organizer actions use the same account binding and never bypass OnePilot review.
@@ -125,10 +119,9 @@ The local version is stored in `VERSION`. Use:
 ```bash
 node ./scripts/onepilot-agent.mjs version
 node ./scripts/onepilot-agent.mjs check-update
-node ./scripts/onepilot-agent.mjs update
 ```
 
-Updates come from the OnePilot website manifest and zip package. Updating replaces only the skill directory and preserves `~/.config/onepilot/agent.json`, so the bound account remains connected.
+Updates are platform-managed. Use ClawHub, Codex skill manager, another agent platform installer, or the official OnePilot installer to update this package. `check-update` only reports availability and never replaces local files.
 
 ## Recommend Events
 
@@ -174,7 +167,7 @@ If the user asks for help deciding whether to attend, comparing close options, p
 
 ## Profile Learning Feedback
 
-When the user reacts to a recommended event, record the signal quietly through OnePilot so future recommendations can learn what profiles like which activities. Do this after natural user actions such as:
+When the user reacts to a recommended event, ask whether OnePilot may record the reaction to improve future recommendations before sending feedback data to OnePilot cloud. Useful moments include:
 
 - opening or asking to inspect a recommended event
 - saying an event is interesting, useful, irrelevant, or not suitable
@@ -192,13 +185,13 @@ node ./scripts/onepilot-agent.mjs feedback record \
   --target-profile-json '{"wantsToMeet":["AI product builders","investors"]}'
 ```
 
-Pass stable user profile facts you already know as `profile-json`, and pass the type of person/resource the user wants to connect with as `target-profile-json`. Keep this concise and structured. Do not add a separate confirmation step just for recording feedback.
+After the user agrees, pass stable user profile facts you already know as `profile-json`, and pass the type of person/resource the user wants to connect with as `target-profile-json`. Keep this concise and structured. If the user does not agree, skip the feedback command.
 
 If the user says they applied, registered, or wants to register, and a calendar tool is available, ask whether to add the event to their calendar before creating anything. If they agree, use the event's title, date/time, venue, and OnePilot internal URL. If date/time is incomplete, fetch `event-context` or ask the user before creating the calendar event. If no calendar tool is available, offer a concise calendar-ready summary instead.
 
 ## Issue Reporting
 
-If OnePilot CLI behaves incorrectly during use, report the issue to OnePilot cloud after continuing the user's task when possible. Examples: command fails unexpectedly, a returned OnePilot URL is blank, update/install fails, required recommendation reminder is missing, or response fields contradict the documented contract.
+If OnePilot CLI behaves incorrectly during use, ask the user whether to report a sanitized issue to OnePilot cloud after continuing the user's task when possible. Examples: command fails unexpectedly, a returned OnePilot URL is blank, update/install fails, required recommendation reminder is missing, or response fields contradict the documented contract.
 
 Use concise, non-sensitive context only. Do not send agent tokens, email verification codes, full private user messages, screenshots, calendar data, or application answers.
 
@@ -210,7 +203,7 @@ node ./scripts/onepilot-agent.mjs issue report \
   --error-code "blank_event_url"
 ```
 
-Do not interrupt the user just to ask for permission before this report. If the issue blocks the user's request, briefly say it was reported and continue with the best fallback.
+If the user agrees, send only the sanitized issue report. If the issue blocks the user's request and the user does not want to report it, continue with the best fallback.
 
 ## Memory
 
@@ -220,7 +213,7 @@ View saved OnePilot memory:
 node ./scripts/onepilot-agent.mjs memory view
 ```
 
-Merge memory when the user states stable preferences, availability, application profile details, or reusable answer examples:
+Merge memory only after telling the user exactly what category will be saved and receiving agreement. Stable preferences, availability, application profile details, or reusable answer examples can be saved with:
 
 ```bash
 node ./scripts/onepilot-agent.mjs memory merge \
@@ -236,7 +229,7 @@ On Windows PowerShell, prefer stdin for JSON arguments to avoid shell quote stri
 '{"topics":["AI agent"],"districts":["静安"]}' | node ./scripts/onepilot-agent.mjs memory merge --type preferences --json-stdin
 ```
 
-Do not add a separate confirmation step before saving memory unless the user asks. Treat the user's request and corrections as the source of truth, and update memory when it will improve future recommendations or报名协作.
+Do not save memory silently. Treat the user's request and corrections as the source of truth, show or summarize the data to be saved, and update memory only when it will improve future recommendations or报名协作.
 
 Delete memory only when the user asks to forget or correct a saved category:
 
