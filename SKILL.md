@@ -69,6 +69,7 @@ After installation or whenever `status` is run, read `nextAction` and `userFacin
 If `bound: false`, proactively tell the user in Chinese that OnePilot Skill is installed but not bound, then ask whether to bind now. Prefer mailbox-tool binding when an email connector is available; otherwise ask for a website binding code.
 
 If `bound: true`, proactively tell the user what OnePilot can do next: recommend OPC and AI startup events, remember preferences and application materials, set local subscriptions, and prepare报名 answers.
+If the bound account is an organizer member, the Skill can also help manage the OnePilot organizer workbench through `organizer` commands. Organizer actions use the same account binding and never bypass OnePilot review.
 
 ## Featured Resources
 
@@ -344,6 +345,70 @@ Use the returned event context and saved memory to draft answers locally. Extern
 
 After the user confirms they registered or submitted, check whether a calendar tool is available. Ask before adding the event to the calendar; never silently create, edit, or delete calendar events.
 
+## Organizer Workbench Help
+
+Use organizer commands only when the user is acting as an event organizer or asks to manage the organizer workbench. The bound OnePilot account must be a member of an organizer in `onepilot_organizer_members`.
+
+Check organizer status first:
+
+```bash
+node ./scripts/onepilot-agent.mjs organizer status
+```
+
+Use status to identify the organizer, role, profile completeness, commercial cooperation status, pending/returned reviews, and whether the current agent token has organizer scopes. If the response includes `missing_scope` or `rebindRequired`, ask the user to generate a fresh binding code from OnePilot and bind again.
+
+List manageable events:
+
+```bash
+node ./scripts/onepilot-agent.mjs organizer events list
+```
+
+For new activity submissions, collect the activity facts locally and show the normalized draft to the organizer. Do not invent missing facts, fees, source links, poster URLs, group QR URLs, or registration questions. Submit only after explicit natural-language confirmation:
+
+```bash
+printf '%s' '{"title":"...","date":"2026-08-12","location":"...","summary":"...","registrationMode":"external","externalRegistrationUrl":"https://..."}' | \
+node ./scripts/onepilot-agent.mjs organizer event submit --event-json-stdin --confirmed
+```
+
+For edits to published or returned events, fetch `organizer events list`, prepare the revision draft, show the changes, then submit with confirmation:
+
+```bash
+printf '%s' '{"title":"...","date":"2026-08-12","location":"...","summary":"..."}' | \
+node ./scripts/onepilot-agent.mjs organizer event revise --event-id EVENT_ID --event-json-stdin --confirmed
+```
+
+Event submissions and revisions enter OnePilot review. The live event is not directly published or modified by the agent.
+
+Manage organizer profiles through review-only revisions:
+
+```bash
+node ./scripts/onepilot-agent.mjs organizer profile view
+printf '%s' '{"name":"...","organizerType":"社群/媒体","allowedRegionCodes":["shanghai"]}' | \
+node ./scripts/onepilot-agent.mjs organizer profile submit --profile-json-stdin --confirmed
+```
+
+Read registrations only for organizer Owners:
+
+```bash
+node ./scripts/onepilot-agent.mjs organizer registrations list --event-id EVENT_ID
+node ./scripts/onepilot-agent.mjs organizer registrations export --event-id EVENT_ID
+```
+
+Manage the organizer's reusable OnePilot registration template:
+
+```bash
+node ./scripts/onepilot-agent.mjs organizer registration-template view
+printf '%s' '{"registrationQuestions":[{"id":"q1","label":"关注方向","type":"short_text","required":true}],"registrationSuccessTitle":"报名已提交"}' | \
+node ./scripts/onepilot-agent.mjs organizer registration-template save --template-json-stdin --confirmed
+```
+
+Organizer safety rules:
+
+- Never publish, approve, reject, delete, archive, or enable commercial cooperation from the agent.
+- Never submit organizer writes silently; local confirmation is required before every write command.
+- Member accounts may create or revise activities and templates; Owner accounts can also submit profile revisions and read/export registrations.
+- Use OnePilot-hosted registration only when commercial cooperation is enabled, unless editing an existing OnePilot registration activity that already has that mode.
+
 ## Error Handling
 
 - `missing_agent_token`, `invalid_agent_token`, `revoked_agent_token`, or `expired_agent_token`: run `status`, then re-bind with a fresh binding code.
@@ -364,5 +429,8 @@ After the user confirms they registered or submitted, check whether a calendar t
 - `form_version_changed`: fetch the form again, rebuild the draft if needed, and ask the user to confirm the updated version.
 - `validation_failed`: ask for the missing or invalid fields named in `fieldErrors`.
 - `duplicate_registration`: tell the user this event already has a submitted registration for the same account or contact.
+- `organizer_membership_required`: tell the user this OnePilot account is not yet a member of any organizer; they need to register, accept an invitation, or ask an Owner/admin to add the account.
+- `owner_scope_required`: explain that this organizer action requires Owner permission.
+- `missing_scope` with `rebindRequired`: ask the user to generate a new binding code and re-bind the agent so organizer scopes are included.
 - `missing_issue_description`: summarize the observed bug before reporting it.
 - Missing local config: guide binding instead of calling recommendation endpoints.

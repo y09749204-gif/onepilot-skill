@@ -53,6 +53,16 @@ Usage:
   onepilot-agent.mjs application form --detail-token dt_xxx | --event-url URL | --event-id EVENT_ID
   onepilot-agent.mjs application submit --event-id EVENT_ID --form-version VERSION --answers-json '{"name":"..."}' | --answers-json-stdin
   onepilot-agent.mjs application qr --url IMAGE_URL [--output /path/to/qr.png]
+  onepilot-agent.mjs organizer status
+  onepilot-agent.mjs organizer events list
+  onepilot-agent.mjs organizer event submit --event-json '{"title":"..."}' | --event-json-stdin --confirmed
+  onepilot-agent.mjs organizer event revise --event-id EVENT_ID --event-json '{"title":"..."}' | --event-json-stdin --confirmed
+  onepilot-agent.mjs organizer profile view
+  onepilot-agent.mjs organizer profile submit --profile-json '{"name":"..."}' | --profile-json-stdin --confirmed
+  onepilot-agent.mjs organizer registrations list [--event-id EVENT_ID]
+  onepilot-agent.mjs organizer registrations export [--event-id EVENT_ID]
+  onepilot-agent.mjs organizer registration-template view
+  onepilot-agent.mjs organizer registration-template save --template-json '{"registrationQuestions":[]}' | --template-json-stdin --confirmed
   onepilot-agent.mjs event-context --detail-token dt_xxx
   onepilot-agent.mjs feedback record --recommendation-id rec_xxx --action interested [--position 0] [--profile-json '{}'] [--profile-json-stdin] [--target-profile-json '{}'] [--target-profile-json-stdin]
   onepilot-agent.mjs issue report --description TEXT [--title TEXT] [--command TEXT] [--error-code TEXT] [--metadata-json '{}'] [--metadata-json-stdin]
@@ -404,6 +414,7 @@ function accountPolicySummary() {
       recommendationResultsPerRequest: 3,
       eventContextRequestsPerDay: 20,
       applicationSubmitAttemptsPerDay: 20,
+      organizerAgentActionsPerDay: "No fixed daily quota in v1; all writes require local confirmation and organizer membership checks.",
       websiteBindingCodesPerDay: 5,
       issueReportsPerDay: 20,
       localSubscriptionFrequency: "daily",
@@ -422,14 +433,14 @@ function statusNextAction(bound) {
   if (!bound) {
     return "请主动用中文告诉用户：OnePilot Skill 已安装完成但还没有绑定账号。询问用户是否现在绑定；如果有 Gmail、Outlook 或其他邮箱工具，优先帮用户读取 OnePilot 邮箱验证码并通过 bind-email 完成绑定；否则请用户提供网站绑定码。";
   }
-  return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅或准备报名回答。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 5 次、每次最多 3 条，活动上下文每天 20 次，站内报名提交尝试每天 20 次，额度按账号共享。";
+  return "请主动用中文告诉用户：OnePilot 已绑定，可以开始推荐 OPC 和 AI 创业活动、保存偏好、设置订阅、准备报名回答；如果该账号是主办方成员，也可以通过 organizer 命令管理主办方工作台。提醒：同一账号同时只有一个有效 agent，新设备绑定会让旧设备自动失效；活动推荐每天 5 次、每次最多 3 条，活动上下文每天 20 次，站内报名提交尝试每天 20 次，额度按账号共享。";
 }
 
 function statusUserFacingPrompt(bound) {
   if (!bound) {
     return "OnePilot Skill 已安装完成，但还没有绑定账号。我可以现在帮你绑定：如果你授权了邮箱工具，我可以读取 OnePilot 验证码完成绑定；也可以使用 OnePilot 网站生成的绑定码。";
   }
-  return "OnePilot 已绑定。我可以帮你推荐 OPC 和 AI 创业活动、维护偏好和报名资料、设置本地订阅，并在你要报名时准备回答草稿。";
+  return "OnePilot 已绑定。我可以帮你推荐 OPC 和 AI 创业活动、维护偏好和报名资料、设置本地订阅，并在你要报名时准备回答草稿；如果你是主办方成员，也可以帮你整理并提交活动、管理资料修订、查看报名情况。";
 }
 
 function requireConfig() {
@@ -938,6 +949,132 @@ async function application(args) {
   };
 }
 
+function requireConfirmed(args) {
+  if (args.confirmed !== true) {
+    throw new Error("confirmation_required");
+  }
+}
+
+function organizerJsonPayload(args, key, stdinKey, errorName) {
+  const raw = jsonOption(args, key, stdinKey);
+  const parsed = parseOptionalJson(raw, errorName);
+  if (!Object.keys(parsed).length) throw new Error(errorName.replace(/^invalid_/, "missing_"));
+  return parsed;
+}
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+function registrationsToCsv(rows) {
+  const headers = ["提交时间", "活动", "姓名", "公司", "职务", "微信", "状态"];
+  const body = rows.map((row) => [
+    row.submittedAt || "",
+    row.eventTitle || row.eventExternalId || "",
+    row.name || "",
+    row.company || "",
+    row.jobTitle || "",
+    row.wechat || "",
+    row.status || "",
+  ].map(csvEscape).join(","));
+  return [headers.join(","), ...body].join("\n");
+}
+
+function organizerWriteInstruction() {
+  return [
+    "Before any organizer write command, show the normalized draft or patch to the organizer and require explicit natural-language confirmation.",
+    "Agent actions never publish directly; event and profile changes enter OnePilot review.",
+    "Do not delete events or registrations, do not enable commercial cooperation, and do not invent fees, source URLs, posters, or missing factual details.",
+  ].join(" ");
+}
+
+async function organizer(args) {
+  const config = requireConfig();
+  const resource = args._[1] || "status";
+  const mode = args._[2] || "";
+  const postOrganizer = (body) => postJson(`${config.supabaseUrl}/functions/v1/agent-organizer-portal`, body, config.agentToken);
+
+  if (resource === "status") {
+    return postOrganizer({ action: "status" });
+  }
+
+  if (resource === "events") {
+    if (mode && mode !== "list") throw new Error("unsupported_organizer_events_mode");
+    return postOrganizer({ action: "events-list" });
+  }
+
+  if (resource === "event") {
+    if (mode === "submit") {
+      requireConfirmed(args);
+      const event = organizerJsonPayload(args, "event-json", "event-json-stdin", "invalid_event_json");
+      return {
+        ...await postOrganizer({ action: "create-event", event, confirmed: true }),
+        instruction: organizerWriteInstruction(),
+      };
+    }
+    if (mode === "revise") {
+      requireConfirmed(args);
+      const eventExternalId = String(args["event-id"] || args.eventId || "").trim();
+      if (!eventExternalId) throw new Error("missing_event_id");
+      const event = organizerJsonPayload(args, "event-json", "event-json-stdin", "invalid_event_json");
+      return {
+        ...await postOrganizer({ action: "create-event-revision", eventExternalId, event, confirmed: true }),
+        instruction: organizerWriteInstruction(),
+      };
+    }
+    throw new Error("unsupported_organizer_event_mode");
+  }
+
+  if (resource === "profile") {
+    if (!mode || mode === "view") {
+      return postOrganizer({ action: "profile-view" });
+    }
+    if (mode === "submit") {
+      requireConfirmed(args);
+      const profile = organizerJsonPayload(args, "profile-json", "profile-json-stdin", "invalid_profile_json");
+      return {
+        ...await postOrganizer({ action: "update-organizer-profile", profile, confirmed: true }),
+        instruction: organizerWriteInstruction(),
+      };
+    }
+    throw new Error("unsupported_organizer_profile_mode");
+  }
+
+  if (resource === "registrations") {
+    if (!mode || mode === "list") {
+      return postOrganizer({ action: "registrations-list", eventExternalId: String(args["event-id"] || args.eventId || "").trim() });
+    }
+    if (mode === "export") {
+      const result = await postOrganizer({ action: "registrations-list", eventExternalId: String(args["event-id"] || args.eventId || "").trim() });
+      return {
+        ...result,
+        csv: registrationsToCsv(Array.isArray(result.registrations) ? result.registrations : []),
+        instruction: "Return csv to the organizer only after confirming they have Owner permission in the response.",
+      };
+    }
+    throw new Error("unsupported_organizer_registrations_mode");
+  }
+
+  if (resource === "registration-template") {
+    if (!mode || mode === "view") {
+      return postOrganizer({ action: "registration-template-view" });
+    }
+    if (mode === "save") {
+      requireConfirmed(args);
+      const template = organizerJsonPayload(args, "template-json", "template-json-stdin", "invalid_template_json");
+      return {
+        ...await postOrganizer({ action: "registration-template-save", template, confirmed: true }),
+        instruction: organizerWriteInstruction(),
+      };
+    }
+    throw new Error("unsupported_organizer_registration_template_mode");
+  }
+
+  throw new Error("unsupported_organizer_resource");
+}
+
 async function main() {
   const args = readArgs(process.argv.slice(2));
   const command = args._[0] || "help";
@@ -974,6 +1111,8 @@ async function main() {
     result = await subscription(args);
   } else if (command === "application") {
     result = await application(args);
+  } else if (command === "organizer") {
+    result = await organizer(args);
   } else if (command === "event-context") {
     result = await eventContext(args);
   } else {

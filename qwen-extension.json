@@ -21,6 +21,16 @@
       "name": "onepilot.recommend",
       "description": "Request OnePilot event recommendations.",
       "command": "node scripts/onepilot-agent.mjs recommend --limit 3"
+    },
+    {
+      "name": "onepilot.organizer.status",
+      "description": "Check OnePilot organizer workbench status for the bound account.",
+      "command": "node scripts/onepilot-agent.mjs organizer status"
+    },
+    {
+      "name": "onepilot.organizer.events",
+      "description": "List manageable organizer events for the bound account.",
+      "command": "node scripts/onepilot-agent.mjs organizer events list"
     }
   ]
 }
