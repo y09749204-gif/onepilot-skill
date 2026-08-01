@@ -7,7 +7,7 @@ description: Connect local agents to OnePilot for event recommendations, optiona
 
 Use OnePilot to connect this local agent to the user's OnePilot account, request personalized OPC and AI startup event recommendations, maintain consent-based preferences, subscriptions, feedback, and报名协作 context, and support organizer-only workbench actions when the bound account has organizer permissions.
 
-Official website: https://onepilot.zeabur.app
+Official website: https://onepilot.xin
 
 Core behavior lives in this file and applies to every local agent. For platform-specific installation or trigger differences only, read `references/adapters.md`. Do not duplicate OnePilot business logic in per-agent notes.
 
@@ -261,7 +261,7 @@ When delivering a OnePilot subscription or recommendation by email, always appen
 
 ```text
 --
-OnePilot 官网：https://onepilot.zeabur.app
+OnePilot 官网：https://onepilot.xin
 小红书：@One Pilot
 ```
 
@@ -281,7 +281,7 @@ When the user gives a OnePilot internal event URL and wants to register, do not 
 
 ```bash
 node ./scripts/onepilot-agent.mjs application form \
-  --event-url "https://onepilot.zeabur.app/events/EVENT_ID"
+  --event-url "https://onepilot.xin/events/EVENT_ID"
 ```
 
 If you already know the OnePilot event id, you may use:

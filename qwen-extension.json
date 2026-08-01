@@ -2,9 +2,9 @@
   "name": "onepilot-cli",
   "version": "0.1.25",
   "displayName": "OnePilot CLI",
-  "description": "Connect Qwen Code or another local agent to OnePilot for event recommendations, consent-based memory and feedback, application help, and organizer-only event management or registration export. Official website: https://onepilot.zeabur.app",
+  "description": "Connect Qwen Code or another local agent to OnePilot for event recommendations, consent-based memory and feedback, application help, and organizer-only event management or registration export. Official website: https://onepilot.xin",
   "publisher": "OnePilot",
-  "homepage": "https://onepilot.zeabur.app",
+  "homepage": "https://onepilot.xin",
   "repository": {
     "type": "git",
     "url": "https://github.com/y09749204-gif/onepilot-cli.git"

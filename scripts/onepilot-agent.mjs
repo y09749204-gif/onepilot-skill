@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_SUPABASE_URL = "https://kgpktqongfxugynwadaa.supabase.co";
-const DEFAULT_SITE_URL = "https://onepilot.zeabur.app";
+const DEFAULT_SITE_URL = "https://onepilot.xin";
 const DEFAULT_MANIFEST_URL = "https://onepilot.xin/downloads/onepilot-skill-manifest.json";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SKILL_DIR = path.dirname(path.dirname(SCRIPT_PATH));
@@ -16,7 +16,7 @@ const FEATURED_RECOMMENDATIONS_PATH = path.join(SKILL_DIR, "references", "featur
 const DAILY_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const EMAIL_FOOTER = [
   "--",
-  "OnePilot 官网：https://onepilot.zeabur.app",
+  "OnePilot 官网：https://onepilot.xin",
   "小红书：@One Pilot",
 ].join("\n");
 const REQUIRED_RECOMMENDATION_REMINDER = "如果你要报名，可以把报名表截图或问题发给我，我帮你准备回答草稿。";

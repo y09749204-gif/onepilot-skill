@@ -1,7 +1,7 @@
 {
   "name": "onepilot-cli",
   "version": "0.1.25",
-  "description": "OnePilot CLI for local agents: event recommendations, consent-based memory and feedback, application help, and organizer-only event management or registration export. Official website: https://onepilot.zeabur.app",
+  "description": "OnePilot CLI for local agents: event recommendations, consent-based memory and feedback, application help, and organizer-only event management or registration export. Official website: https://onepilot.xin",
   "type": "module",
   "bin": {
     "onepilot-agent": "./scripts/onepilot-agent.mjs"
@@ -37,7 +37,7 @@
     "clawhub",
     "codex"
   ],
-  "homepage": "https://onepilot.zeabur.app",
+  "homepage": "https://onepilot.xin",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/y09749204-gif/onepilot-cli.git"

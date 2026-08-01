@@ -4,7 +4,7 @@ OnePilot CLI 是给本地 agent 使用的命令行工具，通过 Skill、Extens
 
 它可以让 Codex、Claude Code、OpenClaw、Gemini CLI、Qwen Code、WorkBuddy 等本地 agent 连接 OnePilot；其他支持本地命令、Skill、Extension 或 MCP 的 agent 也可以接入。
 
-- 官网：[https://onepilot.zeabur.app](https://onepilot.zeabur.app)
+- 官网：[https://onepilot.xin](https://onepilot.xin)
 - 小红书：`@One Pilot`
 
 第一版不是 MCP server，而是：
@@ -69,7 +69,7 @@ node ./scripts/onepilot-agent.mjs status
 
 第一阶段优先维护这些入口：
 
-- OnePilot 官网下载页：[https://onepilot.zeabur.app](https://onepilot.zeabur.app)，给普通用户复制安装口令。
+- OnePilot 官网下载页：[https://onepilot.xin](https://onepilot.xin)，给普通用户复制安装口令。
 - GitHub Release：给海外开发者和可访问 GitHub 的 agent 下载 zip。
 - Qwen Code Extension：使用 `qwen-extension.json` 做薄适配，核心仍调用同一个 CLI。
 - ClawHub：以 Skill 形态发布同一份 OnePilot CLI 包，不复制业务逻辑。
@@ -247,7 +247,7 @@ node ./scripts/onepilot-agent.mjs subscription run-now
 
 ```text
 --
-OnePilot 官网：https://onepilot.zeabur.app
+OnePilot 官网：https://onepilot.xin
 小红书：@One Pilot
 ```
 
@@ -257,7 +257,7 @@ OnePilot 官网：https://onepilot.zeabur.app
 
 ```bash
 node ./scripts/onepilot-agent.mjs application form \
-  --event-url "https://onepilot.zeabur.app/events/EVENT_ID"
+  --event-url "https://onepilot.xin/events/EVENT_ID"
 ```
 
 如果 agent 已经知道 OnePilot 活动 id，也可以直接用：
