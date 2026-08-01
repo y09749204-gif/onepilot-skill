@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const DEFAULT_SUPABASE_URL = "https://kgpktqongfxugynwadaa.supabase.co";
 const DEFAULT_SITE_URL = "https://onepilot.zeabur.app";
-const DEFAULT_MANIFEST_URL = `${DEFAULT_SITE_URL}/downloads/onepilot-skill-manifest.json`;
+const DEFAULT_MANIFEST_URL = "https://onepilot.xin/downloads/onepilot-skill-manifest.json";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SKILL_DIR = path.dirname(path.dirname(SCRIPT_PATH));
 const VERSION_PATH = path.join(SKILL_DIR, "VERSION");
@@ -235,18 +235,42 @@ function compareVersions(left, right) {
 }
 
 async function fetchJson(url) {
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const error = new Error(`manifest_request_failed:${response.status}`);
-    error.payload = payload;
-    throw error;
+  let lastError = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(`manifest_request_failed:${response.status}`);
+        error.payload = payload;
+        throw error;
+      }
+      return payload;
+    } catch (error) {
+      lastError = error;
+      const message = String(error instanceof Error ? error.message : error).toLowerCase();
+      if (!message.includes("fetch") && !message.includes("network") && !message.includes("abort")) {
+        throw error;
+      }
+      await delay(200 * (attempt + 1));
+    } finally {
+      clearTimeout(timeout);
+    }
   }
-  return payload;
+  throw new Error(`manifest_fetch_failed:${lastError instanceof Error ? lastError.message : String(lastError)}`);
 }
 
 function manifestUrl(args) {
   return String(args["manifest-url"] || process.env.ONEPILOT_SKILL_MANIFEST_URL || DEFAULT_MANIFEST_URL).trim();
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function validateManifest(manifest) {
