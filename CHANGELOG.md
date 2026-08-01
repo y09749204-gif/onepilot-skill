@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.25
+
+- Renamed the public GitHub repository and package metadata from onepilot-skill to onepilot-cli.
+- Kept the `onepilot-agent` command and `SKILL.md` adapter contract stable for existing agent integrations.
+
 ## v0.1.19-alpha
 
 - Removed retired non-event featured recommendation data and guidance.

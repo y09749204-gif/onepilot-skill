@@ -50,7 +50,7 @@ node ./scripts/onepilot-agent.mjs check-update
 
 ```bash
 mkdir -p "$HOME/.codex/skills"
-git clone https://github.com/y09749204-gif/onepilot-skill.git "$HOME/.codex/skills/onepilot"
+git clone https://github.com/y09749204-gif/onepilot-cli.git "$HOME/.codex/skills/onepilot"
 chmod +x "$HOME/.codex/skills/onepilot/scripts/onepilot-agent.mjs"
 ```
 

@@ -1,6 +1,6 @@
 {
-  "name": "onepilot-skill",
-  "version": "0.1.24",
+  "name": "onepilot-cli",
+  "version": "0.1.25",
   "description": "OnePilot CLI for local agents: event recommendations, optional mailbox-code and calendar availability help, consent-based memory and feedback, application form support, and organizer-only event management or registration export. Official website: https://onepilot.zeabur.app",
   "author": {
     "name": "OnePilot"
@@ -8,7 +8,7 @@
   "homepage": "https://onepilot.zeabur.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/y09749204-gif/onepilot-skill.git"
+    "url": "https://github.com/y09749204-gif/onepilot-cli.git"
   },
   "skills": "."
 }
