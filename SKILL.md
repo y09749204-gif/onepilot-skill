@@ -324,7 +324,7 @@ node ./scripts/onepilot-agent.mjs application qr \
 
 Tell the user to join the event group after sending the QR code. If no QR image is configured, use `nextStep.message` and say the organizer will follow up.
 
-If `applicationForm.agentFillAvailable` is false, use the returned `event` and `memory` from `application form`, then OCR or collect the external form questions and draft answers locally. If the form was fetched with `--detail-token`, do not call `application prepare` with that same `detailToken`; `application form` has already consumed it.
+If `applicationForm.agentFillAvailable` is false, use the returned `event` and `memory` from `application form`, then OCR or collect the external form questions and draft answers locally. A `detailToken` can be reused for `event-context` and `application form` reads until it expires; do not call `recommend` again just to mint another token for the same event.
 
 If the user starts from an external form screenshot or question text before you have called `application form`, you may use the older draft-only flow:
 

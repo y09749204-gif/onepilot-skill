@@ -293,7 +293,7 @@ node ./scripts/onepilot-agent.mjs application qr \
 
 命令会返回 `imagePath`。支持发图的渠道就把这个本地图片上传/内嵌发送，支持 Markdown 图片的渠道就渲染为图片；只有当前渠道不能发图或渲染图片时，才退回发送二维码链接。如果没有二维码，就使用 `nextStep.message` 告诉用户后续等待活动方通知。
 
-如果 `application form` 返回不支持站内直报名，agent 应直接使用这次返回的活动信息和记忆，结合用户提供的截图/OCR/问题文本生成草稿。如果这次是用 `--detail-token` 拉取的，不要再用同一个 `detailToken` 调 `application prepare`，因为它已经被 `application form` 消耗。
+如果 `application form` 返回不支持站内直报名，agent 应直接使用这次返回的活动信息和记忆，结合用户提供的截图/OCR/问题文本生成草稿。`detailToken` 在过期前可以重复用于 `event-context` 和 `application form` 读取；不要为了同一活动反复调用 `recommend` 只为换新 token。
 
 外部报名表不由 OnePilot 自动提交。用户一开始就提供报名问题文本，或者让 agent 从截图 OCR 出问题后，可以运行：
 

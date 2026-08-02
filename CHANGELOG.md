@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.26
+
+- Clarified that recommendation detail tokens can be reused for event context and application form reads until they expire.
+- Aligned agent guidance with direct `application form --event-url` and `--event-id` lookups.
+
 ## v0.1.25
 
 - Renamed the public GitHub repository and package metadata from onepilot-skill to onepilot-cli.
