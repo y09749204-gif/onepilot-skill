@@ -309,7 +309,9 @@ node ./scripts/onepilot-agent.mjs application submit \
 ```
 
 Never submit OnePilot-hosted registration silently. The user must explicitly confirm the final answers.
-After a successful `application submit`, read `nextStep`. If `nextStep.groupQrImageUrl` is present, send the QR code as an actual image whenever the current agent/channel supports images. Preferred order:
+After `application submit`, first check whether the response contains `paymentRequired: true` and `browserUrl`. For paid events, the CLI attempts to open the system browser by default so the user can log in with the same OnePilot account, confirm the agent-prefilled answers, and complete payment on the OnePilot website. Always show the returned `browserUrl` as a fallback if `openedBrowser` is false or the user cannot see the browser. In headless environments, pass `--no-open` and show `browserUrl` manually. Paid registrations only become effective after the website payment flow succeeds.
+
+For free events, read `nextStep`. If `nextStep.groupQrImageUrl` is present, send the QR code as an actual image whenever the current agent/channel supports images. Preferred order:
 
 1. Download it to a local image file:
 

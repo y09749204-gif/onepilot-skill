@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -47,7 +48,7 @@ Usage:
   onepilot-agent.mjs subscription disable
   onepilot-agent.mjs application prepare --detail-token dt_xxx --questions TEXT
   onepilot-agent.mjs application form --detail-token dt_xxx | --event-url URL | --event-id EVENT_ID
-  onepilot-agent.mjs application submit --event-id EVENT_ID --form-version VERSION --answers-json '{"name":"..."}' | --answers-json-stdin
+  onepilot-agent.mjs application submit --event-id EVENT_ID --form-version VERSION --answers-json '{"name":"..."}' | --answers-json-stdin [--no-open]
   onepilot-agent.mjs application qr --url IMAGE_URL [--output /path/to/qr.png]
   onepilot-agent.mjs organizer status
   onepilot-agent.mjs organizer events list
@@ -95,6 +96,20 @@ function splitList(value) {
 
 function readStdinText() {
   return fs.readFileSync(0, "utf8");
+}
+
+function openBrowser(url) {
+  if (!/^https?:\/\//i.test(String(url || ""))) return false;
+  const platform = process.platform;
+  const command = platform === "darwin" ? "open" : platform === "win32" ? "cmd" : "xdg-open";
+  const args = platform === "win32" ? ["/c", "start", "", url] : [url];
+  try {
+    const child = spawn(command, args, { detached: true, stdio: "ignore" });
+    child.unref();
+    return true;
+  } catch (_error) {
+    return false;
+  }
 }
 
 function normalizeSearchText(value) {
@@ -855,12 +870,21 @@ async function application(args) {
     if (!eventId) throw new Error("missing_event_id");
     if (!formVersion) throw new Error("missing_form_version");
     const answers = parseOptionalJson(jsonOption(args, "answers-json", "answers-json-stdin"), "invalid_answers_json");
-    return postJson(`${config.supabaseUrl}/functions/v1/agent-application-submit`, {
+    const result = await postJson(`${config.supabaseUrl}/functions/v1/agent-application-submit`, {
       eventId,
       formVersion,
       answers,
       confirmed: true,
     }, config.agentToken);
+    const browserUrl = String(result.browserUrl || "");
+    const shouldOpen = browserUrl && args["no-open"] !== true;
+    return {
+      ...result,
+      openedBrowser: shouldOpen ? openBrowser(browserUrl) : false,
+      instruction: browserUrl
+        ? `${result.instruction || ""} ${shouldOpen ? "A browser open attempt was made. If openedBrowser=false or the user cannot see it, show browserUrl so they can open it manually." : "Show browserUrl so the user can open the payment page manually."}`.trim()
+        : result.instruction,
+    };
   }
 
   if (mode === "qr") {

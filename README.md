@@ -284,7 +284,9 @@ node ./scripts/onepilot-agent.mjs application submit \
   --answers-json-stdin
 ```
 
-提交成功后，CLI 返回 `nextStep`。如果里面有 `groupQrImageUrl`，agent 应优先下载成本地图片并直接发给用户：
+如果提交的是付费活动，CLI 会返回 `paymentRequired: true` 和 `browserUrl`，并默认尝试打开系统浏览器。用户需要在浏览器里登录同一个 OnePilot 账号、确认 agent 预填信息并完成支付；付款成功后报名才生效。无桌面或服务器环境可以加 `--no-open`，然后把返回的 `browserUrl` 发给用户手动打开。
+
+免费活动提交成功后，CLI 返回 `nextStep`。如果里面有 `groupQrImageUrl`，agent 应优先下载成本地图片并直接发给用户：
 
 ```bash
 node ./scripts/onepilot-agent.mjs application qr \

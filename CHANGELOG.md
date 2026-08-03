@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.27
+
+- Added paid event browser handoff for `application submit`: when OnePilot returns a `browserUrl`, the CLI attempts to open the system browser by default and keeps the URL in stdout as fallback.
+- Added `--no-open` for headless agent environments that should print the payment URL without opening a browser.
+
 ## v0.1.26
 
 - Clarified that recommendation detail tokens can be reused for event context and application form reads until they expire.
